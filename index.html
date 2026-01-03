@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kirana - Training Early-Career Therapists</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Volkhov:ital,wght@0,400;0,700;1,400&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==================== RESET & BASE ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-snap-type: y mandatory;
+      overflow-y: scroll;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: #2B2B2B;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* ==================== COLOR VARIABLES ==================== */
+    :root {
+      --charcoal: #2B2B2B;
+      --berry: #A92F50;
+      --eggplant: #4F204D;
+      
+      /* Consistent aged paper base */
+      --paper-base: #F3E4C6;
+      
+      /* Line colors - MUTED by 15% */
+      --line-color: rgba(120, 95, 60, 0.38);
+      --margin-line: rgba(150, 60, 70, 0.30);
+      
+      /* Rustic stain colors */
+      --stain-brown-dark: rgba(130, 90, 45, 0.2);
+      --stain-brown-light: rgba(160, 120, 70, 0.18);
+      --stain-yellow: rgba(180, 150, 80, 0.22);
+      --stain-sepia: rgba(140, 100, 50, 0.15);
+      --edge-dark: rgba(100, 70, 40, 0.12);
+    }
+    
+    /* ==================== GLOBAL HIGHLIGHT CLASSES ==================== */
+    .highlight-berry {
+      color: var(--berry);
+      font-weight: 500;
+    }
+    
+    .highlight-eggplant {
+      color: var(--eggplant);
+      font-weight: 500;
+    }
+    
+    /* ==================== NOTEBOOK PAGE STYLES ==================== */
+    section {
+      min-height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 40px;
+      overflow: hidden;
+      background: linear-gradient(
+        165deg,
+        #F5E8D0 0%,
+        #F3E4C6 25%,
+        #EED9B6 50%,
+        #E8D0A8 75%,
+        #E2C89A 100%
+      );
+    }
+    
+    /* Notebook lines background */
+    .notebook-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 31px,
+          var(--line-color) 31px,
+          var(--line-color) 32px
+        );
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    /* Red margin line */
+    .margin-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 80px;
+      width: 2px;
+      background: var(--margin-line);
+      z-index: 2;
+    }
+    
+    /* ==================== RUSTIC AGE EFFECTS ==================== */
+    .age-effect {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .rustic-1 {
+      background: 
+        radial-gradient(ellipse at 15% 85%, var(--stain-brown-dark) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 15%, var(--stain-yellow) 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 50%, var(--stain-sepia) 0%, transparent 70%),
+        linear-gradient(to bottom, transparent 0%, var(--edge-dark) 100%);
+    }
+    
+    .rustic-2 {
+      background: 
+        radial-gradient(ellipse at 80% 80%, var(--stain-brown-light) 0%, transparent 55%),
+        radial-gradient(ellipse at 5% 20%, var(--stain-yellow) 0%, transparent 40%),
+        radial-gradient(ellipse at 60% 30%, var(--stain-sepia) 0%, transparent 50%),
+        linear-gradient(135deg, var(--edge-dark) 0%, transparent 30%, transparent 70%, var(--edge-dark) 100%);
+    }
+    
+    .rustic-3 {
+      background: 
+        radial-gradient(ellipse at 95% 60%, var(--stain-brown-dark) 0%, transparent 45%),
+        radial-gradient(ellipse at 25% 10%, var(--stain-yellow) 0%, transparent 55%),
+        radial-gradient(ellipse at 40% 80%, var(--stain-brown-light) 0%, transparent 40%),
+        linear-gradient(to right, var(--edge-dark) 0%, transparent 15%, transparent 85%, var(--edge-dark) 100%);
+    }
+    
+    .rustic-4 {
+      background: 
+        radial-gradient(ellipse at 10% 70%, var(--stain-brown-light) 0%, transparent 60%),
+        radial-gradient(ellipse at 85% 90%, var(--stain-yellow) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 20%, var(--stain-sepia) 0%, transparent 45%),
+        linear-gradient(180deg, var(--edge-dark) 0%, transparent 20%, transparent 80%, var(--edge-dark) 100%);
+    }
+    
+    .rustic-5 {
+      background: 
+        radial-gradient(ellipse at 20% 30%, var(--stain-brown-dark) 0%, transparent 50%),
+        radial-gradient(ellipse at 75% 75%, var(--stain-yellow) 0%, transparent 55%),
+        radial-gradient(ellipse at 90% 10%, var(--stain-brown-light) 0%, transparent 35%),
+        linear-gradient(45deg, var(--edge-dark) 0%, transparent 25%, transparent 75%, var(--edge-dark) 100%);
+    }
+    
+    .rustic-6 {
+      background: 
+        radial-gradient(ellipse at 5% 50%, var(--stain-brown-light) 0%, transparent 55%),
+        radial-gradient(ellipse at 60% 95%, var(--stain-brown-dark) 0%, transparent 45%),
+        radial-gradient(ellipse at 80% 30%, var(--stain-yellow) 0%, transparent 50%),
+        linear-gradient(to top, var(--edge-dark) 0%, transparent 15%, transparent 100%);
+    }
+    
+    .rustic-7 {
+      background: 
+        radial-gradient(ellipse at 30% 90%, var(--stain-yellow) 0%, transparent 50%),
+        radial-gradient(ellipse at 95% 50%, var(--stain-brown-dark) 0%, transparent 45%),
+        radial-gradient(ellipse at 15% 15%, var(--stain-sepia) 0%, transparent 55%),
+        linear-gradient(225deg, var(--edge-dark) 0%, transparent 20%, transparent 80%, var(--edge-dark) 100%);
+    }
+    
+    .rustic-8 {
+      background: 
+        radial-gradient(ellipse at 70% 10%, var(--stain-brown-light) 0%, transparent 50%),
+        radial-gradient(ellipse at 10% 80%, var(--stain-yellow) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 60%, var(--stain-brown-dark) 0%, transparent 40%),
+        linear-gradient(to bottom right, var(--edge-dark) 0%, transparent 30%, transparent 70%, var(--edge-dark) 100%);
+    }
+    
+    /* Paper texture overlay */
+    section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    /* Content wrapper */
+    .content {
+      position: relative;
+      z-index: 3;
+      max-width: 640px;
+      width: 100%;
+      margin-left: 60px;
+      padding-top: 16px;
+    }
+    
+    .content-centered {
+      position: relative;
+      z-index: 3;
+      max-width: 720px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    /* ==================== TYPOGRAPHY ==================== */
+    h1 {
+      font-family: 'Volkhov', serif;
+      font-weight: 700;
+      font-size: 52px;
+      color: var(--charcoal);
+      margin-bottom: 12px;
+      line-height: 64px;
+    }
+    
+    h2 {
+      font-family: 'Volkhov', serif;
+      font-weight: 700;
+      font-size: 27px;
+      color: var(--charcoal);
+      margin-bottom: 5px;
+      line-height: 32px;
+    }
+    
+    p {
+      font-family: 'Volkhov', serif;
+      font-weight: 400;
+      font-size: 18px;
+      color: var(--charcoal);
+      line-height: 32px;
+      margin-bottom: 0;
+    }
+    
+    .para-gap {
+      margin-top: 32px;
+    }
+    
+    /* ==================== SECTION 1: HERO ==================== */
+    .hero h1 {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .hero h1::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 2px;
+      background: rgba(120, 90, 50, 0.5);
+    }
+    
+    .hero .subtitle {
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      opacity: 0.7;
+      margin-bottom: 32px;
+      margin-top: 16px;
+      font-weight: 400;
+      line-height: 32px;
+    }
+    
+    .hero .tagline {
+      font-family: 'Poppins', sans-serif;
+      font-size: 18px;
+      line-height: 32px;
+      color: var(--charcoal);
+      max-width: 580px;
+      margin: 0 auto;
+    }
+    
+    /* ==================== SECTION 4: COURSE ==================== */
+    .course-card {
+      max-width: 640px;
+      margin-left: 60px;
+      padding-top: 16px;
+      position: relative;
+      z-index: 3;
+    }
+    
+    .course .playful {
+      font-family: 'Volkhov', serif;
+      font-size: 18px;
+      color: var(--berry);
+      font-weight: 500;
+    }
+    
+    /* ==================== LINKS ==================== */
+    .link {
+      color: var(--berry);
+      text-decoration: none;
+      border-bottom: 1px solid var(--berry);
+      padding-bottom: 1px;
+      transition: all 0.3s ease;
+    }
+    
+    .link:hover {
+      color: var(--eggplant);
+      border-bottom-color: var(--eggplant);
+    }
+    
+    /* ==================== SECTION 7: ABOUT ==================== */
+    .about .intro {
+      font-family: 'Volkhov', serif;
+      font-weight: 700;
+      font-size: 27px;
+      color: var(--charcoal);
+      margin-bottom: 5px;
+      line-height: 32px;
+    }
+    
+    .about .name-underline {
+      text-decoration: underline;
+      text-decoration-color: rgba(120, 90, 50, 0.4);
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1px;
+    }
+    
+    /* ==================== FOOTER ==================== */
+    .footer {
+      min-height: auto;
+      padding: 64px 40px;
+      scroll-snap-align: end;
+      position: relative;
+      background: linear-gradient(
+        165deg,
+        #F5E8D0 0%,
+        #F3E4C6 25%,
+        #EED9B6 50%,
+        #E8D0A8 75%,
+        #E2C89A 100%
+      );
+    }
+    
+    .footer .notebook-lines {
+      z-index: 1;
+    }
+    
+    .footer p {
+      font-family: 'Volkhov', serif;
+      font-style: italic;
+      font-size: 15px;
+      color: var(--eggplant);
+      opacity: 0.75;
+      max-width: 560px;
+      margin: 0 auto;
+      text-align: center;
+      line-height: 32px;
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* ==================== SCROLL INDICATOR ==================== */
+    .scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      color: var(--charcoal);
+      opacity: 0.45;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 10;
+      letter-spacing: 1px;
+    }
+    
+    .scroll-hint::after {
+      content: '';
+      width: 1px;
+      height: 20px;
+      background: var(--charcoal);
+      opacity: 0.5;
+      animation: scrollPulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes scrollPulse {
+      0%, 100% { transform: scaleY(1); opacity: 0.4; }
+      50% { transform: scaleY(1.4); opacity: 0.7; }
+    }
+    
+    /* ==================== RESPONSIVE: MOBILE ==================== */
+    @media (max-width: 768px) {
+      section {
+        padding: 60px 24px;
+      }
+      
+      .margin-line {
+        left: 24px;
+      }
+      
+      .content {
+        margin-left: 20px;
+      }
+      
+      .course-card {
+        margin-left: 20px;
+      }
+      
+      h1 {
+        font-size: 38px;
+        line-height: 48px;
+      }
+      
+      h2 {
+        font-size: 23px;
+        line-height: 32px;
+      }
+      
+      p {
+        font-size: 16px;
+        line-height: 28px;
+      }
+      
+      .hero .subtitle {
+        font-size: 14px;
+        line-height: 28px;
+      }
+      
+      .hero .tagline {
+        font-size: 16px;
+        line-height: 28px;
+      }
+      
+      .notebook-lines {
+        background-image: 
+          repeating-linear-gradient(
+            to bottom,
+            transparent 0px,
+            transparent 27px,
+            var(--line-color) 27px,
+            var(--line-color) 28px
+          );
+      }
+      
+      .scroll-hint {
+        bottom: 24px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .margin-line {
+        display: none;
+      }
+      
+      .content,
+      .course-card {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SECTION 1: HERO -->
+  <section class="hero">
+    <div class="age-effect rustic-1"></div>
+    <div class="notebook-lines"></div>
+    <div class="content-centered">
+      <h1>Kirana Counselling</h1>
+      <p class="subtitle">Training early-career therapists to feel confident, skilled, and ready.</p>
+      <p class="tagline">Kirana kyunki India deserves mental health, its conversations, and therapy to be as accessible as our <span class="highlight-berry">local kirana stores</span>.</p>
+    </div>
+    <div class="scroll-hint">scroll</div>
+  </section>
+
+  <!-- SECTION 2: THE REALITY -->
+  <section class="reality">
+    <div class="age-effect rustic-2"></div>
+    <div class="notebook-lines"></div>
+    <div class="margin-line"></div>
+    <div class="content">
+      <h2>As students of psychology,</h2>
+      <p class="para-gap">Our college training is largely theoretical. As if we are trained in everything except: <span class="highlight-berry">"What do we actually do as a therapist?"</span></p>
+      <p class="para-gap">We are sent to the field to fend for ourselves. Often feeling helpless.</p>
+      <p class="para-gap">And ofcourse, therapists don't earn well.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 3: WHAT KIRANA IS BUILDING -->
+  <section class="vision">
+    <div class="age-effect rustic-3"></div>
+    <div class="notebook-lines"></div>
+    <div class="margin-line"></div>
+    <div class="content">
+      <h2>What Kirana wants to stand for,</h2>
+      <p class="para-gap">A place to support you in your frustration and helplessness.</p>
+      <p class="para-gap">Help you learn the actual skills <span class="highlight-berry">through practice</span> and not PPTs.</p>
+      <p class="para-gap">And move up in the ladder towards employment or starting your own practice.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 4: MICRO-SKILLS COURSE -->
+  <section class="course">
+    <div class="age-effect rustic-4"></div>
+    <div class="notebook-lines"></div>
+    <div class="margin-line"></div>
+    <div class="course-card">
+      <h2>Micro-Skills Cohort,</h2>
+      <p class="para-gap">A two-month cohort for students of psychology and early-career therapists.</p>
+      <p class="para-gap">Focused on learning the essential micro-skills that help create a safe space for another human to open up in therapy.</p>
+      <p class="para-gap">Lots of practice— in triads, with peers, and on AI clients. <span class="playful">Haan, seriously ;)</span></p>
+    </div>
+  </section>
+
+  <!-- SECTION 5: AI CLIENTS -->
+  <section class="ai-clients">
+    <div class="age-effect rustic-5"></div>
+    <div class="notebook-lines"></div>
+    <div class="margin-line"></div>
+    <div class="content">
+      <h2>AI Clients,</h2>
+      <p class="para-gap">An interface where <span class="highlight-berry">AI behaves like a client</span>, and you practice as a therapist to cement your skills.</p>
+      <p class="para-gap">Experiment safely, without the fear of harming someone in the process.</p>
+      <p class="para-gap">Get real-time, actionable feedback so you can improve— steadily, not dramatically.</p>
+      <p class="para-gap">Wanna try? <a href="https://pritam-therapy-app.vercel.app/" target="_blank" rel="noopener noreferrer" class="link">here</a></p>
+    </div>
+  </section>
+
+  <!-- SECTION 6: OUR VISION -->
+  <section class="long-vision">
+    <div class="age-effect rustic-6"></div>
+    <div class="notebook-lines"></div>
+    <div class="margin-line"></div>
+    <div class="content">
+      <h2>Our vision,</h2>
+      <p class="para-gap">We want to build a world-class therapist training infrastructure where <span class="highlight-berry">members</span> (not "students") graduate feeling confident in their skills and in what they can offer to clients.</p>
+      <p class="para-gap">We also want early-career therapists to feel more <span class="highlight-berry">financially secure</span>, through therapeutic and non-therapeutic streams.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 7: ABOUT JAI -->
+  <section class="about">
+    <div class="age-effect rustic-7"></div>
+    <div class="notebook-lines"></div>
+    <div class="margin-line"></div>
+    <div class="content">
+      <p class="intro">About me,</p>
+      <p class="para-gap"><span class="name-underline">Mera naam Jai hai.</span></p>
+      <p class="para-gap">I studied Mathematics, then Counselling Psychology.</p>
+      <p class="para-gap">I know what it feels like to be an outsider and to not feel prepared enough.</p>
+      <p class="para-gap"><span class="highlight-berry">I don't want you to feel the same way :)</span></p>
+      <p class="para-gap">Some smol things about me: I enjoy masti, I say the word cute a lot, and I deeply value kindness in others.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 8: CONTACT -->
+  <section class="contact">
+    <div class="age-effect rustic-8"></div>
+    <div class="notebook-lines"></div>
+    <div class="margin-line"></div>
+    <div class="content">
+      <h2>In case you,</h2>
+      <p class="para-gap">– Are interested in joining the next cohort starting January 27th</p>
+      <p class="para-gap">– Have questions about the field or life</p>
+      <p class="para-gap">– Or just want to chit-chat</p>
+      <p class="para-gap">Find me <a href="https://www.linkedin.com/in/jai-arora-75a031195" target="_blank" rel="noopener noreferrer" class="link">here</a></p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="age-effect rustic-1"></div>
+    <div class="notebook-lines"></div>
+    <p>We build everything with love and about 90% perfection. The rest of the flavour is added by life's randomness :)</p>
+  </footer>
+
+</body>
+</html>
