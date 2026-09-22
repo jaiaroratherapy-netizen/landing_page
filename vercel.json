@@ -1,5 +1,5 @@
 {
-    "redirects": [
+    "rewrites": [
         {
             "source": "/",
             "has": [
@@ -8,8 +8,11 @@
                     "value": "potluck.kiranacounselling.com"
                 }
             ],
-            "destination": "/diwali-meetup.html",
-            "permanent": false
+            "destination": "/diwali-meetup.html"
+        },
+        {
+            "source": "/",
+            "destination": "/home.html"
         }
     ]
 }
