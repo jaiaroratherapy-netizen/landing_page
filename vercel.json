@@ -1,0 +1,14 @@
+{
+    "rewrites": [
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "potluck.kiranacounselling.com"
+                }
+            ],
+            "destination": "diwali-meetup.html"
+        }
+    ]
+}
