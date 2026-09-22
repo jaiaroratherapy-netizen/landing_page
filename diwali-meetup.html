@@ -354,35 +354,34 @@
 
   <!-- ================= SUMMARY ================= -->
   <section class="card" id="summary" aria-live="polite">
-    <p class="kicker">You're in</p>
-    <h2 id="sumHi">Ho gaya! Here's what you told us</h2>
-    <dl id="sumList"></dl>
-
-    <div class="confirm" id="confirmBox">
-      <p class="kicker" style="color:#8E3C2E">Ek aakhri tap</p>
-      <h3 id="confirmTitle">You're not on the RSVP list yet</h3>
-      <p class="small" id="confirmSub">This button sends Jai a WhatsApp message saying you've registered — already typed out, you just hit send. <b>Jai adds you to the RSVP list from that message</b>, so without it we won't know you're coming.</p>
-      <a class="btn" id="confirmBtn" href="#" target="_blank" rel="noopener" style="margin-top:12px">Send Jai my registration on WhatsApp →</a>
+    <div style="text-align:center; padding: 10px 0 20px;">
+      <p class="kicker" style="color:var(--ochre); margin-bottom:12px;">Registration Confirmed</p>
+      <h2 id="sumHi" style="font-size:32px; margin-bottom:8px;">Welcome to the Potluck!</h2>
+      <p class="diwali" style="font-size:clamp(46px,12vw,64px); line-height:1; margin-bottom:24px;">See you on the 25th 🪔</p>
+      <p style="color:var(--muted); font-size:15px; margin-bottom:0; max-width:400px; margin-left:auto; margin-right:auto;">
+        Your spot is locked in! We're so excited to host you for an evening of food, chaotic conversations, and absolutely no networking.
+      </p>
     </div>
 
-    <div style="height:1px;background:var(--line);margin:20px 0"></div>
+    <div style="background:var(--cream-2); border-radius:16px; padding:20px; border:1px dashed var(--lilac); margin-bottom:24px;">
+      <p class="kicker" style="text-align:center; margin-bottom:16px;">What you're bringing</p>
+      <dl id="sumList" style="margin:0;"></dl>
+    </div>
 
-    <p class="kicker">And here's where to show up</p>
-    <dl>
-      <div class="sum-row"><dt>Date</dt><dd>Sunday, 25th October 2026</dd></div>
-      <div class="sum-row"><dt>Time</dt><dd>5:00 pm onwards</dd></div>
-      <div class="sum-row"><dt>Venue</dt><dd>Mindscape HQ, Malaviya Nagar, South Delhi<br><a href="https://maps.app.goo.gl/dU9X9YPkaT2B3a9z6" target="_blank" rel="noopener" style="color:var(--plum)">Open in Google Maps →</a></dd></div>
-      <div class="sum-row"><dt>Dress code</dt><dd>Indian wear</dd></div>
-      <div class="sum-row"><dt>Carrying</dt><dd id="sumDish">—</dd></div>
-    </dl>
+    <div style="background:var(--cream-2); border-radius:16px; padding:20px; border:1px dashed var(--lilac); margin-bottom:24px;">
+      <p class="kicker" style="text-align:center; margin-bottom:16px;">Where & When</p>
+      <dl style="margin:0;">
+        <div class="sum-row"><dt>Date</dt><dd>Sunday, 25th October 2026</dd></div>
+        <div class="sum-row"><dt>Time</dt><dd>5:00 pm onwards</dd></div>
+        <div class="sum-row"><dt>Venue</dt><dd>Mindscape HQ, Malaviya Nagar, South Delhi<br><a href="https://maps.app.goo.gl/dU9X9YPkaT2B3a9z6" target="_blank" rel="noopener" style="color:var(--plum); font-weight:700; text-decoration:underline;">Open in Maps →</a></dd></div>
+        <div class="sum-row"><dt>Vibe</dt><dd>Indian wear & good energy</dd></div>
+      </dl>
+    </div>
 
-    <div class="btn-row">
+    <div class="btn-row" style="margin-top:0;">
       <a class="btn ghost" id="calBtn" href="#" target="_blank" rel="noopener">Add to calendar</a>
-      <a class="btn ghost" id="waBtn" href="#" target="_blank" rel="noopener">Send it to Jai again</a>
       <button class="btn ghost" id="copyBtn" type="button">Copy my details</button>
     </div>
-
-    <p class="bye">see youuuuu :))</p>
 
     <!-- sticker -->
     <svg class="cat" viewBox="0 0 320 300" role="img" aria-label="Sticker of a shocked cat staring at an empty plate, captioned: sab khatam? main abhi toh aaya">
@@ -509,7 +508,7 @@
 
     var carrying = esc(dish);
 
-    document.getElementById('sumHi').textContent = 'Ho gaya, ' + name.split(' ')[0] + '! Here\u2019s what you told us';
+    document.getElementById('sumHi').textContent = 'Welcome, ' + name.split(' ')[0] + '!';
     document.getElementById('sumList').innerHTML =
         row('Name', esc(name))
       + row('WhatsApp', '+91 ' + esc(phone))
@@ -517,10 +516,9 @@
       + row('Bringing', carrying)
       + row('₹444', 'Paid \u2014 on your word, and that\u2019s enough')
       + (note ? row('Your note', esc(note)) : '');
-    document.getElementById('sumDish').innerHTML = carrying;
 
-    /* WhatsApp handoff */
-    var msg = 'Hi Jai! Registering for the Kirana Diwali Therapist Meet-up 🪔\n\n'
+    /* Registration Summary string (for copyBtn) */
+    var msg = 'Registering for the Kirana Diwali Therapist Meet-up 🪔\n\n'
             + 'Name: ' + name + '\n'
             + 'Number: +91 ' + phone + '\n'
             + 'WA group: ' + group.value + '\n'
@@ -529,13 +527,8 @@
             + (note ? 'Note: ' + note + '\n' : '')
             + '\nSee you on 25th!';
 
-    var waUrl = 'https://wa.me/' + HOST_WHATSAPP + '?text=' + encodeURIComponent(msg);
-    document.getElementById('confirmBtn').href = waUrl;
-    var waBtn = document.getElementById('waBtn');
-    waBtn.href = waUrl;
-
     document.getElementById('copyBtn').onclick = function(){
-      var done = function(){ showToast('Copied — WhatsApp it to Jai'); };
+      var done = function(){ showToast('Copied!'); };
       if(navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(msg).then(done).catch(fallback);
       } else { fallback(); }
@@ -556,13 +549,6 @@
       + '&dates=20261025T113000Z/20261025T160000Z'
       + '&details=' + encodeURIComponent('Potluck + Indian wear. Bringing: ' + dish)
       + '&location=' + encodeURIComponent('Mindscape HQ, Malaviya Nagar, New Delhi');
-
-    var opened = null;
-    try { opened = window.open(waUrl, '_blank'); } catch(err) { opened = null; }
-    if(!opened){
-      document.getElementById('confirmTitle').textContent = 'Ek aakhri tap \u2014 you\u2019re not on the RSVP list yet';
-      document.getElementById('confirmSub').innerHTML = 'Tap below. It opens WhatsApp with your details already typed out for Jai \u2014 just hit send. <b>Jai adds you to the RSVP list from that message</b>, so without it we won\u2019t know you\u2019re coming.';
-    }
 
     form.parentElement.style.display = 'none';
     summary.style.display = 'block';
