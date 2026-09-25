@@ -100,6 +100,7 @@
   }
   .upi span{font-weight:400;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
   .upi:active{transform:translateY(1px)}
+  .upi-qr{display:block;width:min(100%,280px);height:auto;margin:12px auto 0;border-radius:12px}
   .sign{font-family:"Parisienne",cursive;font-size:26px;color:var(--plum);margin:0}
   .brand{font-family:"Playfair Display",serif;font-weight:700;font-size:20px;color:var(--plum);letter-spacing:.2px;margin:0}
   .presents{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin:6px 0 2px}
@@ -329,7 +330,9 @@
         <div class="pay">
           <p class="amount">₹444</p>
           <p class="small" style="margin:10px 0 0">Send it on UPI, to:</p>
-          <button type="button" class="upi" id="upiCopy">arorajai186-1@okaxis <span>tap to copy</span></button>
+          <a href="upi://pay?pa=arorajai186-1@okaxis&amp;pn=Jai%20Arora&amp;am=444&amp;cu=INR&amp;tn=Kirana%20Diwali%20Meetup" aria-label="Open UPI payment with QR code">
+            <img class="upi-qr" src="upi.png" alt="Scan to pay ₹444 to UPI ID arorajai186-1@okaxis">
+          </a>
           <p class="small" style="margin-top:12px"><a class="paylink" href="upi://pay?pa=arorajai186-1@okaxis&amp;pn=Jai%20Arora&amp;am=444&amp;cu=INR&amp;tn=Kirana%20Diwali%20Meetup">or tap to open your UPI app →</a></p>
           <p class="small" style="margin-top:12px">Then tick the box below 👇</p>
         </div>
@@ -554,18 +557,6 @@
     summary.style.display = 'block';
     summary.scrollIntoView({behavior:'smooth', block:'start'});
   });
-
-  /* copy the UPI id */
-  var upiBtn = document.getElementById('upiCopy');
-  if(upiBtn){
-    upiBtn.addEventListener('click', function(){
-      var id = 'arorajai186-1@okaxis';
-      var done = function(){ showToast('UPI ID copied'); };
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(id).then(done).catch(function(){ showToast('Copy nahi hua — type it out: ' + id); });
-      } else { showToast(id); }
-    });
-  }
 
   /* live-clear errors */
   ['name','phone','dish'].forEach(function(id){
