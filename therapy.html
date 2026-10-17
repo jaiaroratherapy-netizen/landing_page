@@ -436,7 +436,7 @@
 
       <div class="q" id="q-id">
         <span class="qt">Verify your identity with Aadhaar <span class="req">*</span></span>
-        <p class="hint">Please scan the QR code available on your original Aadhaar PVC card, e-Aadhaar PDF (or printed copy), or through the mAadhaar app (recommended). This verification helps us ensure the safety and security of our trainee therapists.</p>
+        <p class="hint">Please scan the QR code available on your original Aadhaar PVC card, e-Aadhaar PDF (or printed copy), or through the new Aadhaar app (recommended). This verification helps us ensure the safety and security of our trainee therapists.</p>
 
         <div id="idStart">
           <div class="vbtns">
@@ -552,7 +552,7 @@
   try { if('BarcodeDetector' in window) detector = new BarcodeDetector({formats:['qr_code']}); } catch(e){}
 
   var MESSAGES = {
-    OLD_QR: 'This is an older Aadhaar QR without UIDAI’s digital signature. Please use an e-Aadhaar downloaded from myaadhaar.uidai.gov.in, the mAadhaar app, or the PVC card.',
+    OLD_QR: 'This is an older Aadhaar QR without UIDAI’s digital signature. Please use an e-Aadhaar downloaded from myaadhaar.uidai.gov.in, the new Aadhaar app, or the PVC card.',
     NOT_AADHAAR: 'That QR code isn’t an Aadhaar QR. Please scan the big QR code on your Aadhaar.',
     BAD_SIGNATURE: 'We couldn’t confirm this QR with UIDAI’s signature. Please scan the original QR on your Aadhaar.',
     UNSUPPORTED: 'This Aadhaar QR version isn’t supported yet. Please try an e-Aadhaar downloaded from myaadhaar.uidai.gov.in.',

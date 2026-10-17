@@ -583,6 +583,9 @@
           return '<span><b>' + esc(firstName) + '</b> is bringing ' + esc(item[2]) + '</span>';
         }).join('<span aria-hidden="true">&bull;</span>');
         attendeeList.innerHTML = roster + '<span aria-hidden="true">&bull;</span>' + roster;
+        // keep a steady reading speed however long the roster gets
+        var loopPx = attendeeList.scrollWidth / 2;
+        attendeeList.style.animationDuration = Math.max(28, loopPx / 30) + 's';
       })
       .catch(function(){
         attendeeList.innerHTML = '<span>The roster is taking a chai break. Check back shortly.</span>';
