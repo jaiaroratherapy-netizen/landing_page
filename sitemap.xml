@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Lists all three hosts; valid because every host serves the robots.txt that points here. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://kiranacounselling.com/</loc>
+    <lastmod>2026-10-17</lastmod>
+  </url>
+  <url>
+    <loc>https://onboarding.kiranacounselling.com/</loc>
+    <lastmod>2026-10-17</lastmod>
+  </url>
+  <url>
+    <loc>https://potluck.kiranacounselling.com/</loc>
+    <lastmod>2026-10-17</lastmod>
+  </url>
+</urlset>

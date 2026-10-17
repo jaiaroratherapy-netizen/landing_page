@@ -1,0 +1,7 @@
+# Served on kiranacounselling.com and its subdomains (one Vercel project).
+User-agent: *
+Allow: /
+# internal tool for the team
+Disallow: /verify.html
+
+Sitemap: https://kiranacounselling.com/sitemap.xml

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- aapka Kirana shop, simplified to read at 16px -->
+  <rect width="64" height="64" rx="14" fill="#A62B4E"/>
+  <g fill="#F6E9CC">
+    <rect x="13" y="12" width="38" height="6" rx="1.5"/>
+    <path d="M11 19.5H53V25a4.2 4.2 0 0 1-8.4 0a4.2 4.2 0 0 1-8.4 0a4.2 4.2 0 0 1-8.4 0a4.2 4.2 0 0 1-8.4 0a4.2 4.2 0 0 1-8.4 0Z"/>
+    <rect x="14" y="29" width="3.5" height="22"/>
+    <rect x="46.5" y="29" width="3.5" height="22"/>
+    <rect x="10" y="50" width="44" height="4" rx="1"/>
+  </g>
+  <g fill="none" stroke="#F6E9CC" stroke-width="2.4">
+    <rect x="21.5" y="32" width="21" height="18"/>
+    <path d="M21.5 37.5h21M21.5 42.5h21M21.5 47h21" stroke-width="1.8"/>
+  </g>
+</svg>
