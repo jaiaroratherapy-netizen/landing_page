@@ -1,4 +1,4 @@
-f<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -34,6 +34,9 @@ f<!DOCTYPE html>
     
     /* ==================== COLOR VARIABLES ==================== */
     :root {
+      /* the notebook rhythm: ruled lines, line-heights and gaps are all multiples of this */
+      --lh: 32px;
+
       --charcoal: #2B2B2B;
       --berry: #A92F50;
       --eggplant: #4F204D;
@@ -73,7 +76,7 @@ f<!DOCTYPE html>
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 80px 40px;
+      padding: calc(var(--lh) * 2) 40px;
       overflow: hidden;
       background: linear-gradient(
         165deg,
@@ -92,14 +95,11 @@ f<!DOCTYPE html>
       left: 0;
       right: 0;
       bottom: 0;
-      background-image: 
-        repeating-linear-gradient(
-          to bottom,
-          transparent 0px,
-          transparent 31px,
-          var(--line-color) 31px,
-          var(--line-color) 32px
-        );
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0 calc(var(--lh) - 1px),
+        var(--line-color) calc(var(--lh) - 1px) var(--lh)
+      );
       pointer-events: none;
       z-index: 1;
     }
@@ -211,7 +211,6 @@ f<!DOCTYPE html>
       max-width: 640px;
       width: 100%;
       margin-left: 60px;
-      padding-top: 16px;
     }
     
     .content-centered {
@@ -228,8 +227,7 @@ f<!DOCTYPE html>
       font-weight: 700;
       font-size: 52px;
       color: var(--charcoal);
-      margin-bottom: 12px;
-      line-height: 64px;
+      line-height: calc(var(--lh) * 2);
     }
     
     h2 {
@@ -237,8 +235,7 @@ f<!DOCTYPE html>
       font-weight: 700;
       font-size: 27px;
       color: var(--charcoal);
-      margin-bottom: 5px;
-      line-height: 32px;
+      line-height: var(--lh);
     }
     
     p {
@@ -246,12 +243,12 @@ f<!DOCTYPE html>
       font-weight: 400;
       font-size: 18px;
       color: var(--charcoal);
-      line-height: 32px;
+      line-height: var(--lh);
       margin-bottom: 0;
     }
     
     .para-gap {
-      margin-top: 32px;
+      margin-top: var(--lh);
     }
     
     /* ==================== SECTION 1: HERO ==================== */
@@ -275,16 +272,16 @@ f<!DOCTYPE html>
       font-family: 'Poppins', sans-serif;
       font-size: 16px;
       opacity: 0.7;
-      margin-bottom: 32px;
-      margin-top: 16px;
+      margin-top: var(--lh);
+      margin-bottom: var(--lh);
       font-weight: 400;
-      line-height: 32px;
+      line-height: var(--lh);
     }
     
     .hero .tagline {
       font-family: 'Poppins', sans-serif;
       font-size: 18px;
-      line-height: 32px;
+      line-height: var(--lh);
       color: var(--charcoal);
       max-width: 580px;
       margin: 0 auto;
@@ -294,7 +291,6 @@ f<!DOCTYPE html>
     .course-card {
       max-width: 640px;
       margin-left: 60px;
-      padding-top: 16px;
       position: relative;
       z-index: 3;
     }
@@ -326,8 +322,7 @@ f<!DOCTYPE html>
       font-weight: 700;
       font-size: 27px;
       color: var(--charcoal);
-      margin-bottom: 5px;
-      line-height: 32px;
+      line-height: var(--lh);
     }
     
     .about .name-underline {
@@ -340,7 +335,7 @@ f<!DOCTYPE html>
     /* ==================== FOOTER ==================== */
     .footer {
       min-height: auto;
-      padding: 64px 40px;
+      padding: calc(var(--lh) * 2) 40px;
       scroll-snap-align: end;
       position: relative;
       background: linear-gradient(
@@ -366,7 +361,7 @@ f<!DOCTYPE html>
       max-width: 560px;
       margin: 0 auto;
       text-align: center;
-      line-height: 32px;
+      line-height: var(--lh);
       position: relative;
       z-index: 2;
     }
@@ -405,8 +400,12 @@ f<!DOCTYPE html>
     
     /* ==================== RESPONSIVE: MOBILE ==================== */
     @media (max-width: 768px) {
+      :root {
+        --lh: 28px;
+      }
+
       section {
-        padding: 60px 24px;
+        padding: calc(var(--lh) * 2) 24px;
       }
       
       .margin-line {
@@ -423,38 +422,22 @@ f<!DOCTYPE html>
       
       h1 {
         font-size: 38px;
-        line-height: 48px;
       }
       
       h2 {
         font-size: 23px;
-        line-height: 32px;
       }
       
       p {
         font-size: 16px;
-        line-height: 28px;
       }
       
       .hero .subtitle {
         font-size: 14px;
-        line-height: 28px;
       }
       
       .hero .tagline {
         font-size: 16px;
-        line-height: 28px;
-      }
-      
-      .notebook-lines {
-        background-image: 
-          repeating-linear-gradient(
-            to bottom,
-            transparent 0px,
-            transparent 27px,
-            var(--line-color) 27px,
-            var(--line-color) 28px
-          );
       }
       
       .scroll-hint {
@@ -591,6 +574,49 @@ f<!DOCTYPE html>
     <div class="notebook-lines"></div>
     <p>We build everything with love and about 90% perfection. The rest of the flavour is added by life's randomness :)</p>
   </footer>
+
+  <script>
+    /* Sit every line of text on a ruled line, like writing in a notebook.
+       The CSS already makes every line-height and gap a multiple of --lh, so here we:
+       1. nudge each text block so its baseline lands just above a rule (fonts differ), and
+       2. nudge each page's content so it starts on a rule (it's vertically centred). */
+    (function () {
+      var GAP = 3; // px between the baseline of the letters and the rule under them
+
+      function align() {
+        var step = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lh')) || 32;
+
+        document.querySelectorAll('section, .footer').forEach(function (page) {
+          var content = page.querySelector('.content, .content-centered, .course-card') || page.querySelector(':scope > p');
+          if (!content) return;
+          var blocks = content.matches('p') ? [content] : content.querySelectorAll('h1, h2, p');
+          content.style.transform = '';
+          Array.prototype.forEach.call(blocks, function (el) { el.style.top = ''; });
+          var offset = content.getBoundingClientRect().top - page.getBoundingClientRect().top;
+
+          Array.prototype.forEach.call(blocks, function (el) {
+            var probe = document.createElement('span');
+            probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
+            el.insertBefore(probe, el.firstChild);
+            var baseline = probe.getBoundingClientRect().top - el.getBoundingClientRect().top;
+            probe.remove();
+            var lineBox = parseFloat(getComputedStyle(el).lineHeight);
+            el.style.position = 'relative';
+            el.style.top = Math.round(lineBox - 1 - GAP - baseline) + 'px';
+          });
+
+          content.style.transform = 'translateY(' + (Math.round(offset / step) * step - offset) + 'px)';
+        });
+      }
+
+      var timer;
+      function schedule() { clearTimeout(timer); timer = setTimeout(align, 60); }
+      align();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(align);
+      window.addEventListener('load', align);
+      window.addEventListener('resize', schedule);
+    })();
+  </script>
 
 </body>
 </html>

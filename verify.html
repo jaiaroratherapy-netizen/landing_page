@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Aadhaar QR Checker · Kirana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Eczar:wght@700&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--cream:#EED9AE;--card:#F5E6C6;--plum:#4A1E48;--berry:#A62B4E;--sage:#B3C6A0;--muted:#7A5C4E;--line:rgba(74,30,72,.2)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--plum);font:16px/1.6 "Karla",sans-serif}
+  .wrap{max-width:640px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-family:"Eczar",serif;font-size:28px;margin:0 0 4px}
+  p{margin:0 0 14px;color:var(--muted)}
+  textarea{width:100%;min-height:140px;font:13px/1.4 ui-monospace,Menlo,monospace;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:#F6E9CC;color:var(--plum)}
+  button{margin-top:12px;width:100%;padding:14px;border:none;border-radius:999px;background:var(--plum);color:#F6E9CC;font:700 16px "Karla",sans-serif;cursor:pointer}
+  .out{margin-top:22px;padding:18px;border-radius:16px;background:var(--card);border:1px solid var(--line);display:none}
+  .out.ok{display:block;border-color:var(--sage);border-width:2px}
+  .out.bad{display:block;border-color:var(--berry);border-width:2px;color:var(--berry);font-weight:700}
+  .badge{display:inline-block;padding:4px 12px;border-radius:999px;background:#5E7F4F;color:#fff;font-weight:700;font-size:13px;margin-bottom:12px}
+  dl{margin:0;display:grid;grid-template-columns:150px 1fr;gap:6px 12px}
+  dt{color:var(--muted);font-size:14px}
+  dd{margin:0;font-weight:700;word-break:break-word}
+  img{max-width:120px;border-radius:8px;margin-top:12px}
+  @media (max-width:480px){dl{grid-template-columns:1fr}dd{margin-bottom:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Aadhaar QR checker</h1>
+  <p>For the Kirana team. Paste the identity cell from the responses sheet (or just the long QR number) to re-check it against UIDAI’s public keys. Everything runs in this browser and nothing is sent anywhere.</p>
+  <textarea id="raw" placeholder="Paste the long number here"></textarea>
+  <button id="go">Check signature</button>
+  <div class="out" id="out"></div>
+</div>
+<script src="aadhaar-qr.js"></script>
+<script>
+document.getElementById('go').addEventListener('click', async function(){
+  var out = document.getElementById('out');
+  out.className = 'out'; out.innerHTML = '';
+  try {
+    // accept the whole verification cell from the sheet: the QR is its longest run of digits
+    var runs = document.getElementById('raw').value.match(/\d{200,}/g) || [''];
+    var r = await AadhaarQR.read(runs.sort(function(a, b){ return b.length - a.length; })[0]);
+    var rows = [
+      ['Name', r.name], ['Date of birth', r.dob], ['Gender', r.gender],
+      ['Aadhaar (last 4)', r.aadhaarLast4 ? '•••• ' + r.aadhaarLast4 : null],
+      ['Mobile (last 4)', r.mobileLast4], ['Address', r.address],
+      ['QR generated', r.generatedAt], ['QR format', r.version], ['Signed with', r.verifiedBy]
+    ];
+    out.className = 'out ok';
+    out.innerHTML = '<span class="badge">✓ Genuine: UIDAI signature valid</span><dl></dl>';
+    var dl = out.querySelector('dl');
+    rows.forEach(function(row){
+      if(!row[1]) return;
+      var dt = document.createElement('dt'), dd = document.createElement('dd');
+      dt.textContent = row[0]; dd.textContent = row[1];
+      dl.appendChild(dt); dl.appendChild(dd);
+    });
+    // photo is JPEG 2000; only Safari can display it
+    if(r.photo && r.photo.length){
+      var img = new Image();
+      img.alt = 'Photo from Aadhaar';
+      img.onerror = function(){ img.remove(); };
+      img.src = URL.createObjectURL(new Blob([r.photo], {type:'image/jp2'}));
+      out.appendChild(img);
+    }
+  } catch(err){
+    out.className = 'out bad';
+    out.textContent = err.code === 'BAD_SIGNATURE'
+      ? '✗ NOT genuine: this data is not signed by UIDAI. It may have been edited or faked.'
+      : '✗ Could not read this: ' + err.message;
+  }
+});
+</script>
+</body>
+</html>

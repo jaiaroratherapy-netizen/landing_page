@@ -12,6 +12,16 @@
         },
         {
             "source": "/",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "onboarding.kiranacounselling.com"
+                }
+            ],
+            "destination": "/therapy.html"
+        },
+        {
+            "source": "/",
             "destination": "/home.html"
         }
     ]
