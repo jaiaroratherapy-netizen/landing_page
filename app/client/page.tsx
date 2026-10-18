@@ -1,4 +1,6 @@
+import Link from 'next/link'
 import { requireRole } from '@/lib/auth'
+import { Avatar } from '@/components/PhotoInput'
 import { db } from '@/lib/supabase'
 import { billSessions, inr } from '@/lib/money'
 import { SessionList, BookForm } from '@/components/SessionList'
@@ -13,7 +15,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
   const c = me.client
   const [{ data: rows }, { data: trainee }, { data: fb }] = await Promise.all([
     db().from('sessions').select('*').eq('client_id', c.id).order('scheduled_at'),
-    c.trainee_id ? db().from('trainees').select('full_name, pronouns, languages, bio, qualifications').eq('id', c.trainee_id).maybeSingle<Partial<Trainee>>() : Promise.resolve({ data: null }),
+    c.trainee_id ? db().from('trainees').select('full_name, pronouns, languages, bio, qualifications, photo_url, slug, intro_call_url, is_public').eq('id', c.trainee_id).maybeSingle<Partial<Trainee>>() : Promise.resolve({ data: null }),
     db().from('client_feedback').select('session_id').eq('client_id', c.id),
   ])
   // clients never see the therapist's private notes
@@ -42,12 +44,23 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
         <section className="card span2">
           <h2>Upcoming</h2>
           <SessionList sessions={upcoming} role="client" empty={trainee ? 'Nothing booked yet. Book a time below or message your therapist.' : 'We are matching you with a therapist. You’ll hear from us on WhatsApp soon.'} />
+          {!trainee && <p className="sp"><Link className="btn ghost small" href="/therapists">Browse our therapists</Link> <span className="fine">and tell us who you’d like to work with.</span></p>}
         </section>
         {trainee && (
           <section className="card">
             <h2>Your therapist</h2>
+            <div className="row" style={{ gap: 14, marginBottom: 14 }}>
+              <Avatar src={trainee.photo_url ?? null} name={trainee.full_name ?? ''} size={72} />
+              <div className="stack" style={{ gap: 6 }}>
+                <b style={{ fontSize: 18 }}>{trainee.full_name}</b>
+                <div className="row">
+                  {trainee.slug && trainee.is_public && <Link className="btn small ghost" href={`/therapists/${trainee.slug}`}>View profile</Link>}
+                  {trainee.intro_call_url && done === 0 && <a className="btn small" href={trainee.intro_call_url} target="_blank" rel="noreferrer">Book intro call</a>}
+                </div>
+              </div>
+            </div>
             <dl className="kv">
-              <dt>Name</dt><dd>{trainee.full_name}{trainee.pronouns ? ` (${trainee.pronouns})` : ''}</dd>
+              {trainee.pronouns && <><dt>Pronouns</dt><dd>{trainee.pronouns}</dd></>}
               {trainee.languages && <><dt>Languages</dt><dd>{trainee.languages}</dd></>}
               {trainee.qualifications && <><dt>Qualifications</dt><dd>{trainee.qualifications}</dd></>}
             </dl>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { loadEverything, earningsFor } from '@/lib/data'
 import { ActionForm, Submit } from '@/components/ActionForm'
 import { Pill } from '@/components/Pill'
+import { Avatar } from '@/components/PhotoInput'
 import { inviteTrainee } from '../actions'
 import { inr } from '@/lib/money'
 
@@ -16,6 +17,7 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
       <div className="head">
         <div><h1>Trainees</h1><p className="muted">{d.trainees.length} trainee therapists across {d.cohorts.length} cohorts.</p></div>
         <form className="row">
+          <Link className="btn ghost small" href="/therapists" target="_blank">Public directory ↗</Link>
           <select name="cohort" defaultValue={cohort ?? ''} aria-label="Filter by cohort">
             <option value="">All cohorts</option>
             {d.cohorts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -33,7 +35,12 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
                 const m = earningsFor(t.id, d.sessions, d.payouts)
                 return (
                   <tr key={t.id}>
-                    <td><Link href={`/admin/trainees/${t.id}`}>{t.full_name}</Link><div className="fine">{t.email}</div></td>
+                    <td>
+                      <div className="row" style={{ flexWrap: 'nowrap' }}>
+                        <Avatar src={t.photo_url} name={t.full_name} size={36} />
+                        <div><Link href={`/admin/trainees/${t.id}`}>{t.full_name}</Link><div className="fine">{t.email}</div></div>
+                      </div>
+                    </td>
                     <td>{t.cohort_id ? cohorts.get(t.cohort_id) : <span className="muted">—</span>}</td>
                     <td><Pill status={t.status} /></td>
                     <td className="num">{d.clients.filter((c) => c.trainee_id === t.id).length} / {t.max_clients}</td>

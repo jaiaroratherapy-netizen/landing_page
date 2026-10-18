@@ -32,6 +32,16 @@ create table if not exists trainees (
   emergency_contact text,
   max_clients int not null default 5,
   admin_notes text,
+  -- public profile (/therapists/<slug>)
+  slug text unique,
+  photo_url text,
+  intro_call_url text,
+  city text,
+  experience text,
+  linkedin text,
+  availability jsonb,
+  is_public boolean not null default true,
+  serene_username text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

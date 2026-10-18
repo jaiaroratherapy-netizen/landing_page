@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import { logActivity, requireRole } from '@/lib/auth'
 import { db } from '@/lib/supabase'
 import { int, newToken, text } from '@/lib/consent'
+import { parsePublicProfile, parseSlug } from '@/lib/profile-form'
+import { removePhoto, savePhoto } from '@/lib/photos'
 import type { Client, Trainee } from '@/lib/types'
 
 type Result = { ok?: string; error?: string }
@@ -12,6 +14,7 @@ type Result = { ok?: string; error?: string }
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function refresh() {
+  revalidatePath('/therapists', 'layout')
   revalidatePath('/admin', 'layout')
   revalidatePath('/trainee', 'layout')
   revalidatePath('/client', 'layout')
@@ -40,6 +43,15 @@ export async function deleteCohort(fd: FormData): Promise<Result> {
 
 // ---------- trainees ----------
 
+async function freeSlug(name: string) {
+  const base = parseSlug(new FormData(), name) || 'therapist'
+  for (let n = 1; ; n++) {
+    const slug = n === 1 ? base : `${base}-${n}`
+    const { count } = await db().from('trainees').select('id', { head: true, count: 'exact' }).eq('slug', slug)
+    if (!count) return slug
+  }
+}
+
 async function createInvite(kind: 'trainee_onboarding' | 'client_consent', ids: { trainee_id?: string; client_id?: string }, by: string) {
   const token = newToken()
   await db().from('invites').insert({ token, kind, ...ids, created_by: by })
@@ -56,7 +68,7 @@ export async function inviteTrainee(fd: FormData): Promise<Result> {
   if (clash) return { error: 'This email already belongs to a client.' }
 
   const { data: t, error } = await db().from('trainees').insert({
-    email, full_name, phone: text(fd, 'phone', 30), cohort_id: text(fd, 'cohort_id'),
+    email, full_name, phone: text(fd, 'phone', 30), cohort_id: text(fd, 'cohort_id'), slug: await freeSlug(full_name),
   }).select('id').single()
   if (error) return { error: error.code === '23505' ? 'A trainee with this email already exists.' : 'Could not add the trainee.' }
   await createInvite('trainee_onboarding', { trainee_id: t.id }, admin.email)
@@ -82,8 +94,7 @@ export async function updateTrainee(fd: FormData): Promise<Result> {
   const patch: Partial<Trainee> = {
     email, full_name: text(fd, 'full_name', 200) || undefined, phone: text(fd, 'phone', 30),
     cohort_id: text(fd, 'cohort_id'), status: (text(fd, 'status') as Trainee['status']) || 'invited',
-    pronouns: text(fd, 'pronouns', 60), languages: text(fd, 'languages', 300), qualifications: text(fd, 'qualifications'),
-    specialisations: text(fd, 'specialisations'), bio: text(fd, 'bio'), upi_id: text(fd, 'upi_id', 120),
+    upi_id: text(fd, 'upi_id', 120),
     max_clients: int(fd, 'max_clients') ?? 5, admin_notes: text(fd, 'admin_notes'), updated_at: new Date().toISOString(),
   }
   const { error } = await db().from('trainees').update(patch).eq('id', id)
@@ -91,6 +102,37 @@ export async function updateTrainee(fd: FormData): Promise<Result> {
   await logActivity(admin.email, 'edited a trainee profile', 'trainee', id, patch.full_name)
   refresh()
   return { ok: 'Profile saved.' }
+}
+
+export async function updateTraineePublic(fd: FormData): Promise<Result> {
+  const admin = await requireRole('admin')
+  const id = String(fd.get('id'))
+  const { data: t } = await db().from('trainees').select('full_name').eq('id', id).single()
+  if (!t) return { error: 'Trainee not found.' }
+  const parsed = parsePublicProfile(fd)
+  if ('error' in parsed) return { error: parsed.error }
+  const slug = parseSlug(fd, t.full_name)
+  if (!slug) return { error: 'Profile address can only use letters, numbers and dashes.' }
+  const { error } = await db().from('trainees').update({ ...parsed.patch, slug, updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) return { error: error.code === '23505' ? 'Another trainee already uses this profile address.' : 'Could not save.' }
+  await logActivity(admin.email, 'edited a public profile', 'trainee', id, t.full_name)
+  refresh()
+  return { ok: 'Public profile saved.' }
+}
+
+export async function uploadTraineePhoto(fd: FormData): Promise<Result> {
+  await requireRole('admin')
+  const id = String(fd.get('trainee_id'))
+  const file = fd.get('photo')
+  if (!(file instanceof Blob) || !file.size) return { error: 'Choose a photo first.' }
+  const { data: t } = await db().from('trainees').select('photo_url').eq('id', id).single()
+  try {
+    const url = await savePhoto(id, file, 'image/jpeg')
+    await db().from('trainees').update({ photo_url: url }).eq('id', id)
+    await removePhoto(t?.photo_url ?? null)
+  } catch (e) { return { error: (e as Error).message } }
+  refresh()
+  return { ok: 'Photo updated.' }
 }
 
 export async function deleteTrainee(fd: FormData): Promise<Result> {

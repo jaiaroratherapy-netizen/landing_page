@@ -5,6 +5,8 @@ import { logActivity, requireRole } from '@/lib/auth'
 import { db } from '@/lib/supabase'
 import { bool, int, newToken, text } from '@/lib/consent'
 import { TRAINEE_FEEDBACK } from '@/lib/forms'
+import { parsePublicProfile } from '@/lib/profile-form'
+import { removePhoto, savePhoto } from '@/lib/photos'
 import type { Client } from '@/lib/types'
 
 type Result = { ok?: string; error?: string }
@@ -16,17 +18,47 @@ async function ownClient(clientId: string) {
   return { me, client }
 }
 
+function refreshProfile(slug: string | null) {
+  revalidatePath('/trainee', 'layout')
+  revalidatePath('/admin', 'layout')
+  revalidatePath('/therapists')
+  if (slug) revalidatePath(`/therapists/${slug}`)
+}
+
+/** Private details only Kirana sees. */
 export async function updateMyProfile(fd: FormData): Promise<Result> {
   const me = await requireRole('trainee')
   await db().from('trainees').update({
-    full_name: text(fd, 'full_name', 200) ?? me.trainee.full_name, phone: text(fd, 'phone', 30), pronouns: text(fd, 'pronouns', 60),
-    languages: text(fd, 'languages', 300), qualifications: text(fd, 'qualifications'), specialisations: text(fd, 'specialisations'),
-    bio: text(fd, 'bio'), upi_id: text(fd, 'upi_id', 120), emergency_contact: text(fd, 'emergency_contact', 300),
+    full_name: text(fd, 'full_name', 200) ?? me.trainee.full_name, phone: text(fd, 'phone', 30),
+    upi_id: text(fd, 'upi_id', 120), emergency_contact: text(fd, 'emergency_contact', 300),
     updated_at: new Date().toISOString(),
   }).eq('id', me.trainee.id)
-  revalidatePath('/trainee', 'layout')
-  revalidatePath('/admin', 'layout')
-  return { ok: 'Profile saved.' }
+  refreshProfile(me.trainee.slug)
+  return { ok: 'Saved.' }
+}
+
+/** What clients and visitors see on /therapists. */
+export async function updateMyPublicProfile(fd: FormData): Promise<Result> {
+  const me = await requireRole('trainee')
+  const parsed = parsePublicProfile(fd)
+  if ('error' in parsed) return { error: parsed.error }
+  await db().from('trainees').update({ ...parsed.patch, updated_at: new Date().toISOString() }).eq('id', me.trainee.id)
+  await logActivity(me.email, 'updated their public profile', 'trainee', me.trainee.id, me.trainee.full_name)
+  refreshProfile(me.trainee.slug)
+  return { ok: 'Public profile saved.' }
+}
+
+export async function uploadMyPhoto(fd: FormData): Promise<Result> {
+  const me = await requireRole('trainee')
+  const file = fd.get('photo')
+  if (!(file instanceof Blob) || !file.size) return { error: 'Choose a photo first.' }
+  try {
+    const url = await savePhoto(me.trainee.id, file, 'image/jpeg')
+    await db().from('trainees').update({ photo_url: url, updated_at: new Date().toISOString() }).eq('id', me.trainee.id)
+    await removePhoto(me.trainee.photo_url)
+  } catch (e) { return { error: (e as Error).message } }
+  refreshProfile(me.trainee.slug)
+  return { ok: 'Photo updated.' }
 }
 
 export async function createConsentLink(fd: FormData): Promise<Result> {

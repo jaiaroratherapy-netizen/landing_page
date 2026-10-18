@@ -8,7 +8,9 @@ import { AnswersView } from '@/components/AnswersView'
 import { SessionList } from '@/components/SessionList'
 import { Pill } from '@/components/Pill'
 import { Stat } from '@/components/Stat'
-import { deleteTrainee, newTraineeLink, updateTrainee } from '../../actions'
+import { deleteTrainee, newTraineeLink, updateTrainee, updateTraineePublic, uploadTraineePhoto } from '../../actions'
+import { Avatar, PhotoInput } from '@/components/PhotoInput'
+import { ProfileFields } from '@/components/ProfileFields'
 import { TRAINEE_FEEDBACK, CLIENT_FEEDBACK } from '@/lib/forms'
 import { fmtDate } from '@/lib/format'
 import { inr } from '@/lib/money'
@@ -36,7 +38,10 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
     <>
       <Link className="crumb" href="/admin/trainees">← Trainees</Link>
       <div className="head">
-        <div><h1>{t.full_name}</h1><p className="muted">{t.email} · <Pill status={t.status} /></p></div>
+        <div className="row" style={{ gap: 14 }}>
+          <Avatar src={t.photo_url} name={t.full_name} size={64} />
+          <div><h1>{t.full_name}</h1><p className="muted">{t.email} · <Pill status={t.status} />{t.cohort_id ? ` · ${d.cohorts.find((c) => c.id === t.cohort_id)?.name ?? ''}` : ''}</p></div>
+        </div>
       </div>
 
       {(invite || invited) && (
@@ -78,12 +83,7 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
               <select name="status" defaultValue={t.status}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
             </label>
             <label className="field"><span>Max clients</span><input name="max_clients" type="number" min="0" defaultValue={t.max_clients} /></label>
-            <label className="field"><span>Pronouns</span><input name="pronouns" defaultValue={t.pronouns ?? ''} /></label>
-            <label className="field"><span>Languages</span><input name="languages" defaultValue={t.languages ?? ''} /></label>
             <label className="field"><span>UPI ID</span><input name="upi_id" defaultValue={t.upi_id ?? ''} /></label>
-            <label className="field"><span>Qualifications</span><input name="qualifications" defaultValue={t.qualifications ?? ''} /></label>
-            <label className="field full"><span>Specialisations</span><input name="specialisations" defaultValue={t.specialisations ?? ''} /></label>
-            <label className="field full"><span>Bio</span><textarea name="bio" defaultValue={t.bio ?? ''} /></label>
             <label className="field full"><span>Instructor notes <small>(only you see these)</small></span><textarea name="admin_notes" defaultValue={t.admin_notes ?? ''} /></label>
             <div className="full row"><Submit>Save profile</Submit></div>
           </ActionForm>
@@ -107,6 +107,19 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
             ) : <p className="empty">No clients assigned. <Link href="/admin/clients?filter=unassigned">Assign one</Link></p>}
           </section>
         </div>
+
+        <section className="card span2">
+          <div className="card-head">
+            <h2>Public profile</h2>
+            {t.slug && <Link className="btn small ghost" href={`/therapists/${t.slug}`} target="_blank">View public page ↗</Link>}
+          </div>
+          <PhotoInput action={uploadTraineePhoto} current={t.photo_url} name={t.full_name} hidden={{ trainee_id: t.id }} />
+          <ActionForm action={updateTraineePublic} className="stack sp">
+            <input type="hidden" name="id" value={t.id} />
+            <ProfileFields t={t} admin />
+            <div><Submit>Save public profile</Submit></div>
+          </ActionForm>
+        </section>
 
         <section className="card span2">
           <h2>Sessions</h2>

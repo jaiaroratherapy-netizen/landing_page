@@ -1,8 +1,11 @@
+import Link from 'next/link'
 import { requireRole } from '@/lib/auth'
 import { db } from '@/lib/supabase'
 import { ActionForm, Submit } from '@/components/ActionForm'
 import { ConsentView } from '@/components/ConsentView'
-import { updateMyProfile } from '../actions'
+import { PhotoInput } from '@/components/PhotoInput'
+import { ProfileFields } from '@/components/ProfileFields'
+import { updateMyProfile, updateMyPublicProfile, uploadMyPhoto } from '../actions'
 import type { Consent } from '@/lib/types'
 
 export default async function TraineeProfile({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
@@ -15,21 +18,32 @@ export default async function TraineeProfile({ searchParams }: { searchParams: P
   ])
   return (
     <>
-      <div className="head"><div><h1>Your profile</h1><p className="muted">{t.email}{cohort ? ` · ${cohort.name}` : ''}</p></div></div>
-      {welcome && <p className="note ok" style={{ marginBottom: 16 }}>Welcome aboard! Your onboarding form is saved. Please complete your profile below.</p>}
-      <div className="grid g2">
+      <div className="head">
+        <div><h1>Your profile</h1><p className="muted">{t.email}{cohort ? ` · ${cohort.name}` : ''}</p></div>
+        {t.slug && <Link className="btn ghost" href={`/therapists/${t.slug}`} target="_blank">View my public page ↗</Link>}
+      </div>
+      {welcome && <p className="note ok" style={{ marginBottom: 16 }}>Welcome aboard! Your onboarding form is saved. Please check your public profile below.</p>}
+
+      <section className="card">
+        <h2>Public profile</h2>
+        <p className="muted" style={{ marginBottom: 16 }}>Clients and visitors see this on kiranacounselling.com/therapists when choosing a therapist and booking an intro call.</p>
+        <PhotoInput action={uploadMyPhoto} current={t.photo_url} name={t.full_name} />
+        <ActionForm action={updateMyPublicProfile} className="stack sp">
+          <ProfileFields t={t} />
+          <div><Submit>Save public profile</Submit></div>
+        </ActionForm>
+      </section>
+
+      <div className="grid g2 sp">
         <section className="card">
+          <h2>Private details</h2>
+          <p className="fine" style={{ marginBottom: 12 }}>Only the Kirana team sees these.</p>
           <ActionForm action={updateMyProfile} className="form-grid">
             <label className="field"><span>Full name</span><input name="full_name" defaultValue={t.full_name} required /></label>
             <label className="field"><span>WhatsApp</span><input name="phone" defaultValue={t.phone ?? ''} /></label>
-            <label className="field"><span>Pronouns</span><input name="pronouns" defaultValue={t.pronouns ?? ''} /></label>
-            <label className="field"><span>Languages</span><input name="languages" defaultValue={t.languages ?? ''} placeholder="Hindi, English" /></label>
-            <label className="field"><span>Qualifications</span><input name="qualifications" defaultValue={t.qualifications ?? ''} /></label>
             <label className="field"><span>UPI ID <small>(for payouts)</small></span><input name="upi_id" defaultValue={t.upi_id ?? ''} /></label>
-            <label className="field full"><span>Specialisations</span><input name="specialisations" defaultValue={t.specialisations ?? ''} /></label>
-            <label className="field full"><span>Emergency contact</span><input name="emergency_contact" defaultValue={t.emergency_contact ?? ''} /></label>
-            <label className="field full"><span>Short bio <small>(clients may see this)</small></span><textarea name="bio" defaultValue={t.bio ?? ''} /></label>
-            <div className="full"><Submit>Save profile</Submit></div>
+            <label className="field"><span>Emergency contact</span><input name="emergency_contact" defaultValue={t.emergency_contact ?? ''} /></label>
+            <div className="full"><Submit>Save</Submit></div>
           </ActionForm>
         </section>
         <section className="card">

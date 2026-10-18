@@ -6,7 +6,12 @@ export type Trainee = {
   cohort_id: string | null; status: TraineeStatus; pronouns: string | null; languages: string | null
   qualifications: string | null; specialisations: string | null; bio: string | null; upi_id: string | null
   emergency_contact: string | null; max_clients: number; admin_notes: string | null; created_at: string; updated_at: string
+  slug: string | null; photo_url: string | null; intro_call_url: string | null; city: string | null; experience: string | null
+  linkedin: string | null; availability: Availability | null; is_public: boolean; serene_username: string | null
 }
+
+export type Slot = { start_time: string; end_time: string }
+export type Availability = Partial<Record<'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday', Slot[]>>
 
 export type ClientStatus = 'new' | 'assigned' | 'active' | 'paused' | 'dropped' | 'completed'
 export type Client = {

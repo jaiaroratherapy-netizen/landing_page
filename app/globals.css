@@ -209,3 +209,44 @@ dl.kv dd { margin: 0; font-weight: 700; word-break: break-word; }
 .prose { max-width: 760px; margin: 0 auto; }
 .prose h2 { margin: 28px 0 8px; }
 .prose p, .prose li { margin: 0 0 10px; line-height: 1.65; }
+
+/* ---------- therapist profiles ---------- */
+.avatar { border-radius: 50%; object-fit: cover; flex: none; display: inline-grid; place-items: center; background: var(--cream); color: var(--plum); font: 800 20px var(--font-display), serif; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(74, 30, 72, .14); }
+.photo-input { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.avail { border: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 12px; }
+.avail > span { grid-column: 1 / -1; }
+.avail label { display: flex; align-items: center; gap: 8px; font-weight: 400; }
+.avail b { width: 34px; text-transform: capitalize; font-size: 13px; color: var(--muted); }
+
+.pub { min-height: 100vh; background: var(--cream); }
+.pub-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px clamp(16px, 4vw, 40px); background: rgba(246, 233, 204, .9); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 5; border-bottom: 1px solid var(--line); }
+.pub-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--plum); font: 800 18px var(--font-display), serif; }
+.pub-brand img { width: 38px; }
+.pub-head nav { display: flex; align-items: center; gap: 18px; font-weight: 700; font-size: 14px; }
+.pub-head nav a:not(.btn) { color: var(--plum); text-decoration: none; }
+.pub-main { max-width: 1120px; margin: 0 auto; padding: 28px 16px 64px; }
+.pub-hero { text-align: center; max-width: 640px; margin: 8px auto 26px; display: flex; flex-direction: column; gap: 12px; }
+.pub-hero h1 { font-size: clamp(30px, 6vw, 44px); }
+.pub-hero p { color: var(--muted); font-size: 16px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 22px; }
+.chips a { padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); color: var(--plum); text-decoration: none; font-size: 13.5px; font-weight: 700; }
+.chips a.on { background: var(--plum); color: #F6E9CC; border-color: var(--plum); }
+.t-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.t-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 22px 18px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); color: var(--plum); text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; }
+.t-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -14px rgba(74, 30, 72, .35); }
+.t-card h2 { font-size: 19px; margin-top: 6px; }
+.t-langs { font-size: 13px; font-weight: 700; color: var(--sage-ink); }
+.t-bio { font-size: 13.5px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.t-more { margin-top: auto; padding-top: 6px; font-size: 13px; font-weight: 700; color: var(--berry); }
+.profile .p-top { display: flex; gap: 26px; align-items: center; flex-wrap: wrap; }
+.profile .p-top h1 { font-size: clamp(28px, 5vw, 38px); }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.fees { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+.fees li { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px dashed var(--line); }
+.fees li:last-child { border-bottom: none; }
+@media (max-width: 640px) {
+  .pub-head nav a:not(.btn):nth-child(2) { display: none; }
+  .pub-brand span { display: none; }
+  .profile .p-top { flex-direction: column; text-align: center; }
+  .profile .p-top .row, .profile .tags { justify-content: center; }
+}
