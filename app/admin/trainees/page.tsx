@@ -19,7 +19,7 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
     <>
       <div className="head">
         <div><h1>Trainees</h1><p className="muted">{d.trainees.length} trainee therapists across {d.cohorts.length} cohorts.</p></div>
-        <form className="row">
+        <form className="toolbar">
           <Link className="btn ghost small" href="/therapists" target="_blank">Public directory ↗</Link>
           <select name="cohort" defaultValue={cohort ?? ''} aria-label="Filter by cohort">
             <option value="">All cohorts</option>
@@ -29,7 +29,21 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
         </form>
       </div>
 
-      <section className="card">
+      <section className="card" id="invite">
+        <h2>Invite a trainee</h2>
+        <p className="muted" style={{ marginBottom: 14 }}>Creates their profile and a unique onboarding link. They sign in with this Google account and fill the onboarding & consent form.</p>
+        <ActionForm action={inviteTrainee} className="form-grid">
+          <label className="field"><span>Full name</span><input name="full_name" required /></label>
+          <label className="field"><span>Google account email</span><input name="email" type="email" required /></label>
+          <label className="field"><span>WhatsApp</span><input name="phone" type="tel" /></label>
+          <label className="field"><span>Cohort</span>
+            <select name="cohort_id" defaultValue=""><option value="">No cohort yet</option>{d.cohorts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+          </label>
+          <div className="full"><Submit pendingText="Creating…">Create onboarding link</Submit></div>
+        </ActionForm>
+      </section>
+
+      <section className="card sp">
         <div className="table-wrap">
           <table>
             <thead><tr><th>Name</th><th>Cohort</th><th>Status</th><th className="num">Clients</th><th className="num">Sessions</th><th>Calendar</th><th className="num">Owed</th></tr></thead>
@@ -55,23 +69,10 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
               })}
             </tbody>
           </table>
-          {!list.length && <p className="empty">No trainees yet. Invite one below.</p>}
+          {!list.length && <p className="empty">No trainees yet. Invite one above.</p>}
         </div>
       </section>
 
-      <section className="card sp" id="invite">
-        <h2>Invite a trainee</h2>
-        <p className="muted" style={{ marginBottom: 14 }}>Creates their profile and a unique onboarding link. They sign in with this Google account and fill the onboarding & consent form.</p>
-        <ActionForm action={inviteTrainee} className="form-grid">
-          <label className="field"><span>Full name</span><input name="full_name" required /></label>
-          <label className="field"><span>Google account email</span><input name="email" type="email" required /></label>
-          <label className="field"><span>WhatsApp</span><input name="phone" type="tel" /></label>
-          <label className="field"><span>Cohort</span>
-            <select name="cohort_id" defaultValue=""><option value="">No cohort yet</option>{d.cohorts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
-          </label>
-          <div className="full"><Submit pendingText="Creating…">Create onboarding link</Submit></div>
-        </ActionForm>
-      </section>
     </>
   )
 }
