@@ -21,11 +21,12 @@ export default function Privacy() {
 
       <h2>What we collect</h2>
       <ul>
-        <li><b>Account data from Google Sign-In</b>: your name, email address and profile picture URL. We only request the basic “openid”, “email” and “profile” scopes. We do not access your Gmail, Drive, contacts or any other Google data.</li>
+        <li><b>Account data from Google Sign-In</b>: your name, email address and profile picture URL, through the basic “openid”, “email” and “profile” scopes. We do not access your Gmail, Drive or contacts.</li>
+        <li><b>Google Calendar (trainee therapists only, optional)</b>: if a trainee connects their calendar, we use the “calendar.freebusy” scope to see which times they are busy (not what their events are), and the “calendar.events” scope to add, update and cancel the sessions booked through Kirana, with a Google Meet link. We store a refresh token for this on our server, and never read, change or delete any other events.</li>
         <li><b>Sign-up details (clients)</b>: email, WhatsApp number, what brings you to therapy, any diagnosis, whether you have had thoughts of self-harm, your college or organisation and any therapist preference.</li>
         <li><b>Identity check (clients)</b>: you scan the Secure QR on your Aadhaar. Your browser and our server check UIDAI’s digital signature. We keep only your name, the last 4 digits of your Aadhaar number, birth year, gender, whether your mobile number matches Aadhaar, and a one-way hash used to prevent duplicate sign-ups. We <b>do not</b> store your full Aadhaar number, address, photo or the QR itself.</li>
         <li><b>Consent forms</b>: the date, your emergency contact, your Yes/No answers, your typed signature, and the time, browser and IP address of signing.</li>
-        <li><b>Therapy records</b>: session dates and status, the therapist’s private notes, the therapist’s tracking of your progress, and payment status for sessions from session 4.</li>
+        <li><b>Therapy records</b>: intro calls and session dates and status, the therapist’s private notes, the therapist’s tracking of your progress, and payment status for sessions from session 4.</li>
         <li><b>Feedback</b>: forms clients and trainees fill after sessions.</li>
         <li><b>Trainee profile</b>: phone, cohort, qualifications, languages, bio and UPI ID for payouts.</li>
       </ul>
@@ -51,7 +52,7 @@ export default function Privacy() {
       </ul>
 
       <h2>Google user data</h2>
-      <p>Kirana’s use of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements. We use your Google name and email only to sign you in and identify your account. We do not transfer it to others except as described above, and we do not use it for advertising or to train AI models.</p>
+      <p>Kirana’s use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements. We use your Google name and email only to sign you in. For trainees who connect Google Calendar, we use free/busy information only to show clients available times, and we only create, update and delete the session events Kirana booked. Google user data is not sold, not transferred to others except as needed to provide these features, not used for advertising, and not used to train AI models. Trainees can disconnect their calendar at any time from their Profile page, which deletes our stored access and revokes it at Google.</p>
 
       <h2>Security</h2>
       <p>Data is encrypted in transit (HTTPS) and at rest. The database is locked down so it can only be read through our server after we check who you are and what your role allows. Access for instructors is limited to named Kirana staff.</p>

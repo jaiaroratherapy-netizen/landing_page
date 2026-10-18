@@ -13,10 +13,12 @@ type Props = {
   nameKey?: 'client_id' | 'trainee_id'
   feedbackGiven?: Set<string>
   hrefFor?: (s: BilledSession) => string
+  /** clients reschedule through the slot picker */
+  rescheduleHref?: (s: BilledSession) => string | null
   empty?: string
 }
 
-export function SessionList({ sessions, role, names, nameKey, feedbackGiven, hrefFor, empty = 'No sessions yet.' }: Props) {
+export function SessionList({ sessions, role, names, nameKey, feedbackGiven, hrefFor, rescheduleHref, empty = 'No sessions yet.' }: Props) {
   if (!sessions.length) return <p className="empty">{empty}</p>
   return (
     <div className="table-wrap">
@@ -42,7 +44,8 @@ export function SessionList({ sessions, role, names, nameKey, feedbackGiven, hre
                 </td>
                 {nameKey && <td>{hrefFor ? <Link href={hrefFor(s)}>{name ?? '—'}</Link> : name ?? '—'}</td>}
                 <td>
-                  {s.number ? <>#{s.number} · {s.fee ? inr(s.fee) : 'Free'}</> : <span className="muted">—</span>}
+                  {s.kind === 'intro' ? <span className="pill assigned">Intro call · free</span>
+                    : s.number ? <>#{s.number} · {s.fee ? inr(s.fee) : 'Free'}</> : <span className="muted">Session</span>}
                   {s.fee > 0 && role !== 'client' && <div className="fine">{s.client_paid ? 'Paid ✓' : 'Payment pending'}</div>}
                 </td>
                 <td>
@@ -52,11 +55,12 @@ export function SessionList({ sessions, role, names, nameKey, feedbackGiven, hre
                 <td style={{ minWidth: 200 }}>
                   <div className="stack" style={{ gap: 8, alignItems: 'flex-end' }}>
                     {upcoming && s.meeting_link && <a className="btn small" href={s.meeting_link} target="_blank" rel="noreferrer">Join call</a>}
+                    {upcoming && <a className="fine" href={`/api/ics/${s.id}`}>Add to calendar</a>}
                     {role === 'client' && s.status === 'completed' && !feedbackGiven?.has(s.id) && (
                       <Link className="btn small berry" href={`/client/feedback/${s.id}`}>Give feedback</Link>
                     )}
                     {role === 'client' && s.status === 'completed' && feedbackGiven?.has(s.id) && <span className="fine">Feedback sent ✓</span>}
-                    <Manage s={s} role={role} />
+                    <Manage s={s} role={role} rescheduleHref={rescheduleHref?.(s) ?? null} />
                   </div>
                 </td>
               </tr>
@@ -68,14 +72,15 @@ export function SessionList({ sessions, role, names, nameKey, feedbackGiven, hre
   )
 }
 
-function Manage({ s, role }: { s: BilledSession; role: Role }) {
+function Manage({ s, role, rescheduleHref }: { s: BilledSession; role: Role; rescheduleHref: string | null }) {
   const upcoming = s.status === 'scheduled'
   if (role === 'client' && !upcoming) return null
   return (
     <details className="box" style={{ width: '100%', maxWidth: 320, textAlign: 'left' }}>
       <summary>Manage</summary>
       <div className="inner stack">
-        {upcoming && (
+        {upcoming && role === 'client' && rescheduleHref && <Link className="btn small" href={rescheduleHref}>Pick a new time</Link>}
+        {upcoming && role !== 'client' && (
           <ActionForm action={rescheduleSession} className="stack">
             <input type="hidden" name="id" value={s.id} />
             <label className="field"><span>New time (IST)</span>
@@ -118,6 +123,7 @@ function Manage({ s, role }: { s: BilledSession; role: Role }) {
   )
 }
 
+/** Free-form booking for trainees and admins (clients use the slot picker at /book). */
 export function BookForm({ action, clients, hideClient }: {
   action: (fd: FormData) => Promise<{ ok?: string; error?: string }>
   clients?: { id: string; full_name: string }[]
@@ -133,11 +139,11 @@ export function BookForm({ action, clients, hideClient }: {
           </select>
         </label>
       )}
-      <label className="field"><span>Date & time (IST)</span><input type="datetime-local" name="scheduled_at" required /></label>
-      <label className="field"><span>Length</span>
-        <select name="duration_min" defaultValue="50"><option value="30">30 min</option><option value="50">50 min</option><option value="60">60 min</option><option value="90">90 min</option></select>
+      <label className="field"><span>Type</span>
+        <select name="kind" defaultValue="session"><option value="session">Therapy session (50 min)</option><option value="intro">Intro call (20 min, free)</option></select>
       </label>
-      {clients || hideClient ? <label className="field"><span>Meeting link</span><input name="meeting_link" placeholder="https://meet.google.com/…" /></label> : null}
+      <label className="field"><span>Date & time (IST)</span><input type="datetime-local" name="scheduled_at" required /></label>
+      <label className="field"><span>Meeting link</span><small>Leave empty to get a Google Meet link when your calendar is connected</small><input name="meeting_link" placeholder="https://meet.google.com/…" /></label>
       <div className="full"><Submit>Book session</Submit></div>
     </ActionForm>
   )

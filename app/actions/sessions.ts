@@ -5,6 +5,8 @@ import { getViewer, logActivity } from '@/lib/auth'
 import { db } from '@/lib/supabase'
 import { fmtDateTime, istInputToIso } from '@/lib/format'
 import { text } from '@/lib/consent'
+import { syncSessionEvent } from '@/lib/google'
+import { KINDS } from '@/lib/kinds'
 import type { Client, Session } from '@/lib/types'
 
 type Result = { ok?: string; error?: string }
@@ -42,12 +44,14 @@ export async function bookSession(fd: FormData): Promise<Result> {
   if (!client.trainee_id) return { error: 'A therapist has not been assigned yet.' }
   if (viewer.role === 'trainee' && client.trainee_id !== viewer.trainee!.id) return { error: 'This client is not assigned to you.' }
 
-  const duration = Math.min(180, Math.max(15, Number(fd.get('duration_min')) || 50))
-  const { error } = await db().from('sessions').insert({
-    client_id: client.id, trainee_id: client.trainee_id, scheduled_at: at, duration_min: duration,
+  const kind = fd.get('kind') === 'intro' ? 'intro' : 'session'
+  const duration = Math.min(180, Math.max(15, Number(fd.get('duration_min')) || KINDS[kind].minutes))
+  const { data: row, error } = await db().from('sessions').insert({
+    client_id: client.id, trainee_id: client.trainee_id, scheduled_at: at, duration_min: duration, kind,
     meeting_link: text(fd, 'meeting_link', 500), created_by: viewer.role,
-  })
-  if (error) return { error: 'Could not book the session.' }
+  }).select('id').single()
+  if (error) return { error: error.code === '23505' ? 'There is already a booking at that exact time.' : 'Could not book the session.' }
+  await syncSessionEvent(row.id)
   if (client.status === 'assigned') await db().from('clients').update({ status: 'active' }).eq('id', client.id)
   await logActivity(viewer.email, 'booked a session', 'client', client.id, `${client.full_name} on ${fmtDateTime(at)}`)
   refresh()
@@ -62,7 +66,9 @@ export async function rescheduleSession(fd: FormData): Promise<Result> {
   try { at = istInputToIso(String(fd.get('scheduled_at') || '')) } catch { return { error: 'Pick a date and time.' } }
   const patch: Partial<Session> = { scheduled_at: at, reschedule_count: g.s.reschedule_count + 1, updated_at: new Date().toISOString() }
   if (g.viewer.role !== 'client' && fd.has('meeting_link')) patch.meeting_link = text(fd, 'meeting_link', 500)
-  await db().from('sessions').update(patch).eq('id', g.s.id)
+  const { error } = await db().from('sessions').update(patch).eq('id', g.s.id)
+  if (error) return { error: error.code === '23505' ? 'There is already a booking at that exact time.' : 'Could not reschedule.' }
+  await syncSessionEvent(g.s.id)
   await logActivity(g.viewer.email, 'rescheduled a session', 'session', g.s.id, `to ${fmtDateTime(at)}`)
   refresh()
   return { ok: 'Rescheduled.' }
@@ -75,6 +81,7 @@ export async function cancelSession(fd: FormData): Promise<Result> {
   await db().from('sessions').update({
     status: 'cancelled', cancelled_by: g.viewer.role, cancel_reason: text(fd, 'reason', 500), updated_at: new Date().toISOString(),
   }).eq('id', g.s.id)
+  await syncSessionEvent(g.s.id)
   await logActivity(g.viewer.email, 'cancelled a session', 'session', g.s.id, text(fd, 'reason', 200) ?? undefined)
   refresh()
   return { ok: 'Cancelled.' }
@@ -92,6 +99,7 @@ export async function updateSessionStatus(fd: FormData): Promise<Result> {
   if (fd.has('client_paid')) patch.client_paid = fd.get('client_paid') === 'yes'
   if (fd.has('meeting_link')) patch.meeting_link = text(fd, 'meeting_link', 500)
   await db().from('sessions').update(patch).eq('id', g.s.id)
+  if ((status === 'cancelled') !== (g.s.status === 'cancelled') || patch.meeting_link !== undefined && patch.meeting_link !== g.s.meeting_link) await syncSessionEvent(g.s.id)
   if (status !== g.s.status) await logActivity(g.viewer.email, `marked a session ${status.replace('_', '-')}`, 'session', g.s.id)
   refresh()
   return { ok: 'Saved.' }

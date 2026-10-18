@@ -15,10 +15,9 @@ export function ProfileFields({ t, admin }: { t: Trainee; admin?: boolean }) {
       <label className="field full"><span>About you</span><small>What clients see first. Who you work with and how.</small><textarea name="bio" rows={6} defaultValue={t.bio ?? ''} /></label>
       <label className="field"><span>Qualifications</span><input name="qualifications" defaultValue={t.qualifications ?? ''} placeholder="MA Clinical Psychology" /></label>
       <label className="field"><span>Experience</span><input name="experience" defaultValue={t.experience ?? ''} /></label>
-      <label className="field"><span>Intro call booking link</span><input name="intro_call_url" defaultValue={t.intro_call_url ?? ''} placeholder="https://serene.vybz.health/user/…" /></label>
-      <label className="field"><span>LinkedIn</span><input name="linkedin" defaultValue={t.linkedin ?? ''} /></label>
+      <label className="field full"><span>LinkedIn</span><input name="linkedin" defaultValue={t.linkedin ?? ''} /></label>
       <fieldset className="field full avail">
-        <span>Weekly availability <small>(India time, e.g. 19:00-20:00, 21:00-22:30)</small></span>
+        <span>Weekly availability <small>Clients book intro calls and sessions inside these hours (India time, e.g. 19:00-20:00, 21:00-22:30)</small></span>
         {DAYS.map((d) => (
           <label key={d}><b>{d.slice(0, 3)}</b><input name={`av_${d}`} defaultValue={slotsText(t.availability?.[d])} placeholder="—" /></label>
         ))}

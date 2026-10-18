@@ -61,6 +61,19 @@ export async function uploadMyPhoto(fd: FormData): Promise<Result> {
   return { ok: 'Photo updated.' }
 }
 
+export async function disconnectCalendar(): Promise<Result> {
+  const me = await requireRole('trainee')
+  const { data } = await db().from('google_accounts').select('refresh_token').eq('trainee_id', me.trainee.id).maybeSingle()
+  if (data) {
+    // revoke at Google too, so the access is really gone
+    await fetch('https://oauth2.googleapis.com/revoke', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ token: data.refresh_token }) }).catch(() => {})
+    await db().from('google_accounts').delete().eq('trainee_id', me.trainee.id)
+    await logActivity(me.email, 'disconnected Google Calendar', 'trainee', me.trainee.id)
+  }
+  revalidatePath('/trainee/profile')
+  return { ok: 'Google Calendar disconnected.' }
+}
+
 export async function createConsentLink(fd: FormData): Promise<Result> {
   const { me, client } = await ownClient(String(fd.get('client_id')))
   if (!client) return { error: 'This client is not assigned to you.' }

@@ -38,6 +38,7 @@ export type Session = {
   id: string; client_id: string; trainee_id: string; scheduled_at: string; duration_min: number
   status: SessionStatus; meeting_link: string | null; trainee_notes: string | null; created_by: string | null
   cancelled_by: string | null; cancel_reason: string | null; reschedule_count: number; client_paid: boolean
+  kind: 'intro' | 'session'; google_event_id: string | null
   created_at: string; updated_at: string
 }
 

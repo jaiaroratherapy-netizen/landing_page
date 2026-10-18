@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth'
 import { loadForTrainee } from '@/lib/data'
 import { Pill } from '@/components/Pill'
 import { fmtDate, fmtDateTime } from '@/lib/format'
+import { therapyDone } from '@/lib/money'
 
 export default async function MyClients() {
   const me = await requireRole('trainee')
@@ -24,7 +25,7 @@ export default async function MyClients() {
                     <td><Link href={`/trainee/clients/${c.id}`}>{c.full_name}</Link>{c.self_harm === 'Yes' && <span className="pill berry" style={{ marginLeft: 6 }}>self-harm: yes</span>}<div className="fine">{c.org}</div></td>
                     <td><Pill status={c.status} /></td>
                     <td>{consented.has(c.id) ? <span className="pill sage">signed</span> : <span className="pill">pending</span>}</td>
-                    <td className="num">{d.allSessions.filter((s) => s.client_id === c.id && s.status === 'completed').length}</td>
+                    <td className="num">{d.allSessions.filter((s) => s.client_id === c.id && therapyDone(s)).length}</td>
                     <td>{next ? fmtDateTime(next.scheduled_at) : <span className="muted">—</span>}</td>
                     <td>{fmtDate(c.assigned_at)}</td>
                   </tr>

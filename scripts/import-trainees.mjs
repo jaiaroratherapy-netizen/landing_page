@@ -1,4 +1,5 @@
-// Imports trainees from a CSV (cohort, name, intro call link, email) and their public Serene profiles.
+// Imports trainees from a CSV (cohort, name, Serene profile link, email). The Serene page is only read once to copy
+// the photo, bio, languages and availability into Kirana; nothing links back to Serene afterwards.
 //   node --env-file=.env scripts/import-trainees.mjs trainees.csv [--dry]
 // Safe to re-run: existing trainees only get fields that are still empty, so their own edits are kept.
 import { readFileSync } from 'node:fs'
@@ -125,8 +126,6 @@ for (const p of people) {
     experience: v.experience?.trim() || null,
     linkedin: v.linkedin?.trim() || null,
     availability: availability(v.availability),
-    intro_call_url: p.profile?.link ?? null,
-    serene_username: v.username ?? null,
     upi_id: upi,
   }
   const current = (existing ?? []).find((t) => t.email === p.email)

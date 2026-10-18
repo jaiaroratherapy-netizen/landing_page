@@ -6,15 +6,18 @@ import { ConsentView } from '@/components/ConsentView'
 import { PhotoInput } from '@/components/PhotoInput'
 import { ProfileFields } from '@/components/ProfileFields'
 import { updateMyProfile, updateMyPublicProfile, uploadMyPhoto } from '../actions'
+import { CalendarCard } from '@/components/CalendarCard'
+import { googleConfigured } from '@/lib/google'
 import type { Consent } from '@/lib/types'
 
-export default async function TraineeProfile({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
-  const { welcome } = await searchParams
+export default async function TraineeProfile({ searchParams }: { searchParams: Promise<{ welcome?: string; calendar?: string }> }) {
+  const { welcome, calendar } = await searchParams
   const me = await requireRole('trainee')
   const t = me.trainee
-  const [{ data: cohort }, { data: consent }] = await Promise.all([
+  const [{ data: cohort }, { data: consent }, { data: account }] = await Promise.all([
     t.cohort_id ? db().from('cohorts').select('name').eq('id', t.cohort_id).maybeSingle() : Promise.resolve({ data: null }),
     db().from('consents').select('*').eq('kind', 'trainee').eq('trainee_id', t.id).order('signed_at', { ascending: false }).limit(1).maybeSingle<Consent>(),
+    db().from('google_accounts').select('google_email, connected_at, last_error').eq('trainee_id', t.id).maybeSingle(),
   ])
   return (
     <>
@@ -24,7 +27,9 @@ export default async function TraineeProfile({ searchParams }: { searchParams: P
       </div>
       {welcome && <p className="note ok" style={{ marginBottom: 16 }}>Welcome aboard! Your onboarding form is saved. Please check your public profile below.</p>}
 
-      <section className="card">
+      <CalendarCard account={account} result={calendar} availability={t.availability} configured={googleConfigured()} />
+
+      <section className="card sp">
         <h2>Public profile</h2>
         <p className="muted" style={{ marginBottom: 16 }}>Clients and visitors see this on kiranacounselling.com/therapists when choosing a therapist and booking an intro call.</p>
         <PhotoInput action={uploadMyPhoto} current={t.photo_url} name={t.full_name} />

@@ -5,7 +5,7 @@ import { loadForTrainee, weekly, countBy, earningsFor } from '@/lib/data'
 import { Bars, Donut, Lines } from '@/components/Charts'
 import { Stat } from '@/components/Stat'
 import { SessionList } from '@/components/SessionList'
-import { inr } from '@/lib/money'
+import { inr, therapyDone } from '@/lib/money'
 import type { Invite, Payout } from '@/lib/types'
 
 export default async function TraineeHome() {
@@ -18,7 +18,7 @@ export default async function TraineeHome() {
   ])
   const now = Date.now()
   const m = earningsFor(t.id, d.sessions, payouts)
-  const completed = d.sessions.filter((s) => s.status === 'completed')
+  const completed = d.sessions.filter(therapyDone)
   const upcoming = d.sessions.filter((s) => s.status === 'scheduled' && new Date(s.scheduled_at).getTime() > now - 3600_000)
   const overdue = d.sessions.filter((s) => s.status === 'scheduled' && new Date(s.scheduled_at).getTime() <= now - 3600_000)
   const names = Object.fromEntries(d.clients.map((c) => [c.id, c.full_name]))

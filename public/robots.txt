@@ -9,6 +9,7 @@ Disallow: /trainee
 Disallow: /client
 Disallow: /join/
 Disallow: /consent/
+Disallow: /book/
 Disallow: /api/
 
 Sitemap: https://kiranacounselling.com/sitemap.xml

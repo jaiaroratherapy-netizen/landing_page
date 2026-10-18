@@ -3,7 +3,7 @@ import { loadEverything, recentActivity, weekly, countBy, earningsFor } from '@/
 import { Bars, Donut, Lines } from '@/components/Charts'
 import { CONSENT_ITEMS } from '@/lib/forms'
 import { fmtDateTime } from '@/lib/format'
-import { inr } from '@/lib/money'
+import { inr, therapyDone } from '@/lib/money'
 import { Stat } from '@/components/Stat'
 
 export default async function Overview() {
@@ -11,7 +11,7 @@ export default async function Overview() {
   const activity = await recentActivity(20)
   const now = Date.now()
 
-  const completed = d.sessions.filter((s) => s.status === 'completed')
+  const completed = d.sessions.filter(therapyDone)
   const upcoming = d.sessions.filter((s) => s.status === 'scheduled' && new Date(s.scheduled_at).getTime() > now)
   const unassigned = d.clients.filter((c) => !c.trainee_id)
   const flagged = d.clients.filter((c) => c.self_harm === 'Yes' && !['dropped', 'completed'].includes(c.status))

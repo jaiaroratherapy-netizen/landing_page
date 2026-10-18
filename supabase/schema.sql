@@ -121,11 +121,23 @@ create table if not exists sessions (
   cancel_reason text,
   reschedule_count int not null default 0,
   client_paid boolean not null default false,
+  kind text not null default 'session' check (kind in ('intro', 'session')),
+  google_event_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 create index if not exists sessions_client_idx on sessions (client_id, scheduled_at);
 create index if not exists sessions_trainee_idx on sessions (trainee_id, scheduled_at);
+create unique index if not exists sessions_no_double_booking on sessions (trainee_id, scheduled_at) where status = 'scheduled';
+
+create table if not exists google_accounts (
+  trainee_id uuid primary key references trainees on delete cascade,
+  google_email text,
+  refresh_token text not null,
+  scope text,
+  connected_at timestamptz not null default now(),
+  last_error text
+);
 
 -- trainee's tracking sheet for each client
 create table if not exists client_tracking (
@@ -189,7 +201,7 @@ do $$
 declare t text;
 begin
   foreach t in array array['cohorts','trainees','clients','invites','consents','sessions',
-    'client_tracking','trainee_feedback','client_feedback','payouts','activity']
+    'client_tracking','trainee_feedback','client_feedback','payouts','activity','google_accounts']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('revoke all on %I from anon, authenticated', t);

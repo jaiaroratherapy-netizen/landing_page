@@ -1,7 +1,7 @@
 import 'server-only'
 import { db } from './supabase'
 import { requireRole } from './auth'
-import { billSessions, type BilledSession } from './money'
+import { billSessions, therapyDone, type BilledSession } from './money'
 import { weekKey, shortDay } from './format'
 import type { Activity, Client, Cohort, Consent, Feedback, Invite, Payout, Session, Trainee, Tracking } from './types'
 
@@ -87,7 +87,7 @@ export type Earnings = { billable: number; earned: number; collected: number; pa
 
 /** Money per trainee: billable sessions (4th onward), what clients paid, what Kirana paid out, what is still owed. */
 export function earningsFor(traineeId: string, sessions: BilledSession[], payouts: Payout[]): Earnings {
-  const done = sessions.filter((s) => s.trainee_id === traineeId && s.status === 'completed')
+  const done = sessions.filter((s) => s.trainee_id === traineeId && therapyDone(s))
   const billable = done.filter((s) => s.fee > 0)
   const earned = billable.reduce((a, s) => a + s.fee, 0)
   const collected = billable.filter((s) => s.client_paid).reduce((a, s) => a + s.fee, 0)

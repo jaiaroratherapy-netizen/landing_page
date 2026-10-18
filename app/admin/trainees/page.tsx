@@ -1,14 +1,17 @@
 import Link from 'next/link'
 import { loadEverything, earningsFor } from '@/lib/data'
+import { db } from '@/lib/supabase'
 import { ActionForm, Submit } from '@/components/ActionForm'
 import { Pill } from '@/components/Pill'
 import { Avatar } from '@/components/PhotoInput'
 import { inviteTrainee } from '../actions'
-import { inr } from '@/lib/money'
+import { inr, therapyDone } from '@/lib/money'
 
 export default async function Trainees({ searchParams }: { searchParams: Promise<{ cohort?: string }> }) {
   const { cohort } = await searchParams
   const d = await loadEverything()
+  const { data: cal } = await db().from('google_accounts').select('trainee_id, last_error')
+  const calendar = new Map((cal ?? []).map((c) => [c.trainee_id, c.last_error]))
   const cohorts = new Map(d.cohorts.map((c) => [c.id, c.name]))
   const list = cohort ? d.trainees.filter((t) => t.cohort_id === cohort) : d.trainees
 
@@ -29,7 +32,7 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
       <section className="card">
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Name</th><th>Cohort</th><th>Status</th><th className="num">Clients</th><th className="num">Sessions</th><th className="num">Owed</th></tr></thead>
+            <thead><tr><th>Name</th><th>Cohort</th><th>Status</th><th className="num">Clients</th><th className="num">Sessions</th><th>Calendar</th><th className="num">Owed</th></tr></thead>
             <tbody>
               {list.map((t) => {
                 const m = earningsFor(t.id, d.sessions, d.payouts)
@@ -44,7 +47,8 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
                     <td>{t.cohort_id ? cohorts.get(t.cohort_id) : <span className="muted">—</span>}</td>
                     <td><Pill status={t.status} /></td>
                     <td className="num">{d.clients.filter((c) => c.trainee_id === t.id).length} / {t.max_clients}</td>
-                    <td className="num">{d.sessions.filter((s) => s.trainee_id === t.id && s.status === 'completed').length}</td>
+                    <td className="num">{d.sessions.filter((s) => s.trainee_id === t.id && therapyDone(s)).length}</td>
+                    <td>{!calendar.has(t.id) ? <span className="muted">—</span> : calendar.get(t.id) ? <span className="pill berry">error</span> : <span className="pill sage">synced</span>}{!t.availability && <div className="fine">no hours set</div>}</td>
                     <td className="num">{inr(m.due)}</td>
                   </tr>
                 )

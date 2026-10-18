@@ -13,8 +13,9 @@ import { Avatar, PhotoInput } from '@/components/PhotoInput'
 import { ProfileFields } from '@/components/ProfileFields'
 import { TRAINEE_FEEDBACK, CLIENT_FEEDBACK } from '@/lib/forms'
 import { fmtDate } from '@/lib/format'
-import { inr } from '@/lib/money'
+import { inr, therapyDone } from '@/lib/money'
 import { origin } from '@/lib/site'
+import { db } from '@/lib/supabase'
 
 const STATUSES = ['invited', 'onboarded', 'active', 'paused', 'completed']
 
@@ -33,6 +34,7 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
   const feedback = d.traineeFeedback.filter((f) => f.trainee_id === t.id)
   const fromClients = d.clientFeedback.filter((f) => f.trainee_id === t.id)
   const base = await origin()
+  const { data: cal } = await db().from('google_accounts').select('google_email, last_error').eq('trainee_id', t.id).maybeSingle()
 
   return (
     <>
@@ -63,7 +65,7 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
 
       <div className="grid g4 sp">
         <Stat n={clients.length} label="Clients" sub={`max ${t.max_clients}`} />
-        <Stat n={sessions.filter((s) => s.status === 'completed').length} label="Sessions done" sub={`${m.free} free · ${m.billable} paid`} />
+        <Stat n={sessions.filter(therapyDone).length} label="Sessions done" sub={`${m.free} free · ${m.billable} paid`} />
         <Stat n={inr(m.earned)} label="Earned" sub={`${inr(m.collected)} collected from clients`} />
         <Stat n={inr(m.due)} label="Still owed" sub={`${inr(m.paidOut)} paid out`} berry />
       </div>
@@ -113,6 +115,9 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
             <h2>Public profile</h2>
             {t.slug && <Link className="btn small ghost" href={`/therapists/${t.slug}`} target="_blank">View public page ↗</Link>}
           </div>
+          <p className="fine" style={{ marginBottom: 12 }}>
+            Google Calendar: {cal ? (cal.last_error ? <b style={{ color: 'var(--berry)' }}>{cal.last_error}</b> : <>connected ({cal.google_email})</>) : 'not connected (the trainee connects it from their Profile page)'}
+          </p>
           <PhotoInput action={uploadTraineePhoto} current={t.photo_url} name={t.full_name} hidden={{ trainee_id: t.id }} />
           <ActionForm action={updateTraineePublic} className="stack sp">
             <input type="hidden" name="id" value={t.id} />

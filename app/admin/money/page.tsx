@@ -6,14 +6,14 @@ import { Stat } from '@/components/Stat'
 import { deletePayout, recordPayout } from '../actions'
 import { FREE_SESSIONS, SESSION_FEE } from '@/lib/forms'
 import { fmtDate, todayIst } from '@/lib/format'
-import { inr } from '@/lib/money'
+import { inr, therapyDone } from '@/lib/money'
 
 export default async function Money() {
   const d = await loadEverything()
   const rows = d.trainees.map((t) => ({ t, m: earningsFor(t.id, d.sessions, d.payouts) })).sort((a, b) => b.m.due - a.m.due)
   const sum = (k: 'earned' | 'collected' | 'paidOut' | 'due' | 'billable' | 'free') => rows.reduce((a, r) => a + r.m[k], 0)
   const names = Object.fromEntries(d.trainees.map((t) => [t.id, t.full_name]))
-  const completed = d.sessions.filter((s) => s.status === 'completed')
+  const completed = d.sessions.filter(therapyDone)
   const chart = weekly(completed, (s) => s.scheduled_at, { free: (s) => +(s.fee === 0), paid: (s) => +(s.fee > 0) })
 
   return (

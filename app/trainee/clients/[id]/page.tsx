@@ -14,6 +14,7 @@ import { bookSession } from '@/app/actions/sessions'
 import { CLIENT_FEEDBACK } from '@/lib/forms'
 import { fmtDate } from '@/lib/format'
 import { origin } from '@/lib/site'
+import { therapyDone } from '@/lib/money'
 
 export default async function TraineeClient({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -25,7 +26,7 @@ export default async function TraineeClient({ params }: { params: Promise<{ id: 
   const consent = d.consents.find((x) => x.client_id === c.id) ?? null
   const invite = d.invites.find((i) => i.client_id === c.id && !i.used_at && new Date(i.expires_at) > new Date())
   const sessions = d.allSessions.filter((s) => s.client_id === c.id).reverse()
-  const completed = sessions.filter((s) => s.status === 'completed').length
+  const completed = sessions.filter(therapyDone).length
   const tracking = d.tracking.find((t) => t.client_id === c.id) ?? null
   const feedback = d.clientFeedback.filter((f) => f.client_id === c.id)
   const base = await origin()

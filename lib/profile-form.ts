@@ -15,10 +15,8 @@ function url(fd: FormData, key: string) {
 
 /** Public-profile fields shared by the trainee's own form and the admin's trainee form. */
 export function parsePublicProfile(fd: FormData): { error: string } | { patch: Partial<Trainee> } {
-  const intro = url(fd, 'intro_call_url')
   const linkedin = url(fd, 'linkedin')
-  const bad = [intro, linkedin].find((r) => 'error' in r)
-  if (bad && 'error' in bad) return { error: bad.error! }
+  if ('error' in linkedin) return { error: linkedin.error! }
 
   const availability: Availability = {}
   for (const d of DAYS) {
@@ -36,7 +34,6 @@ export function parsePublicProfile(fd: FormData): { error: string } | { patch: P
       experience: text(fd, 'experience', 1500),
       qualifications: text(fd, 'qualifications', 500),
       pronouns: text(fd, 'pronouns', 60),
-      intro_call_url: intro.value ?? null,
       linkedin: linkedin.value ?? null,
       availability: Object.keys(availability).length ? availability : null,
       is_public: fd.get('is_public') === 'on',

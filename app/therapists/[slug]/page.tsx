@@ -7,8 +7,6 @@ import { getViewer } from '@/lib/auth'
 import { DAYS, hasAvailability, splitList, time12 } from '@/lib/profiles'
 import { PublicHeader } from '@/components/PublicHeader'
 import { Avatar } from '@/components/PhotoInput'
-import { ActionForm, Submit } from '@/components/ActionForm'
-import { requestTherapist } from '../actions'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const t = await getPublicTrainee((await params).slug)
@@ -51,21 +49,13 @@ export default async function TherapistProfile({ params }: { params: Promise<{ s
             {t.languages && <div className="tags">{splitList(t.languages).map((l) => <span key={l} className="pill">{l}</span>)}</div>}
             {t.specialisations && <div className="tags">{splitList(t.specialisations).map((l) => <span key={l} className="pill sage">{l}</span>)}</div>}
             <div className="row sp">
-              {mine ? (
-                <Link className="btn berry" href="/client">Book a session</Link>
-              ) : t.intro_call_url ? (
-                <a className="btn berry" href={t.intro_call_url} target="_blank" rel="noreferrer">Book a free intro call</a>
-              ) : null}
+              {mine
+                ? <Link className="btn berry" href={`/book/${t.slug}?type=session`}>Book a session</Link>
+                : (!client?.trainee_id && <Link className="btn berry" href={`/book/${t.slug}?type=intro`}>Book a free intro call</Link>)}
               {!viewer && <Link className="btn ghost" href="/onboarding">New here? Sign up</Link>}
               {t.linkedin && <a className="btn ghost" href={t.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>}
             </div>
             {mine && <p className="note ok">{first} is your therapist.</p>}
-            {client && !client.trainee_id && (
-              <ActionForm action={requestTherapist}>
-                <input type="hidden" name="trainee_id" value={t.id} />
-                <Submit className="btn ghost small" pendingText="Sending…">I’d like to work with {first}</Submit>
-              </ActionForm>
-            )}
           </div>
         </section>
 
@@ -89,7 +79,7 @@ export default async function TherapistProfile({ params }: { params: Promise<{ s
                     <Fragment key={d}><dt style={{ textTransform: 'capitalize' }}>{d}</dt><dd>{t.availability![d]!.map((s) => `${time12(s.start_time)} – ${time12(s.end_time)}`).join(', ')}</dd></Fragment>
                   ))}
                 </dl>
-              ) : <p className="muted">Times are agreed after the intro call.</p>}
+              ) : <p className="muted">{first} hasn’t added their hours yet.</p>}
               <p className="fine sp">India time. Sessions are online.</p>
             </section>
             <section className="card">
