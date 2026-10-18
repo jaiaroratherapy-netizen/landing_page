@@ -1,0 +1,127 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { loadEverything, earningsFor } from '@/lib/data'
+import { ActionForm, Submit } from '@/components/ActionForm'
+import { CopyLink } from '@/components/CopyLink'
+import { ConsentView } from '@/components/ConsentView'
+import { AnswersView } from '@/components/AnswersView'
+import { SessionList } from '@/components/SessionList'
+import { Pill } from '@/components/Pill'
+import { Stat } from '@/components/Stat'
+import { deleteTrainee, newTraineeLink, updateTrainee } from '../../actions'
+import { TRAINEE_FEEDBACK, CLIENT_FEEDBACK } from '@/lib/forms'
+import { fmtDate } from '@/lib/format'
+import { inr } from '@/lib/money'
+import { origin } from '@/lib/site'
+
+const STATUSES = ['invited', 'onboarded', 'active', 'paused', 'completed']
+
+export default async function TraineeDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ invited?: string }> }) {
+  const [{ id }, { invited }] = await Promise.all([params, searchParams])
+  const d = await loadEverything()
+  const t = d.trainees.find((x) => x.id === id)
+  if (!t) notFound()
+
+  const invite = d.invites.find((i) => i.trainee_id === t.id && i.kind === 'trainee_onboarding' && !i.used_at && new Date(i.expires_at) > new Date())
+  const consent = d.consents.find((c) => c.kind === 'trainee' && c.trainee_id === t.id) ?? null
+  const clients = d.clients.filter((c) => c.trainee_id === t.id)
+  const names = Object.fromEntries(d.clients.map((c) => [c.id, c.full_name]))
+  const sessions = d.sessions.filter((s) => s.trainee_id === t.id).reverse()
+  const m = earningsFor(t.id, d.sessions, d.payouts)
+  const feedback = d.traineeFeedback.filter((f) => f.trainee_id === t.id)
+  const fromClients = d.clientFeedback.filter((f) => f.trainee_id === t.id)
+  const base = await origin()
+
+  return (
+    <>
+      <Link className="crumb" href="/admin/trainees">← Trainees</Link>
+      <div className="head">
+        <div><h1>{t.full_name}</h1><p className="muted">{t.email} · <Pill status={t.status} /></p></div>
+      </div>
+
+      {(invite || invited) && (
+        <section className="card" style={{ marginBottom: 16 }}>
+          <h2>Onboarding link</h2>
+          {invited && <p className="note ok" style={{ marginBottom: 12 }}>Trainee added. Send them this link.</p>}
+          {invite ? (
+            <CopyLink url={`${base}/join/${invite.token}`} whatsapp={t.phone} message={`Hi ${t.full_name.split(' ')[0]}! Please complete your Kirana Counselling onboarding & consent form (sign in with ${t.email}):`} />
+          ) : <p className="muted">No active link.</p>}
+          <p className="fine sp">Expires {invite ? fmtDate(invite.expires_at) : '—'}.</p>
+        </section>
+      )}
+      {!invite && !consent && (
+        <ActionForm action={newTraineeLink} className="row" >
+          <input type="hidden" name="trainee_id" value={t.id} />
+          <Submit className="btn ghost small">Create a new onboarding link</Submit>
+        </ActionForm>
+      )}
+
+      <div className="grid g4 sp">
+        <Stat n={clients.length} label="Clients" sub={`max ${t.max_clients}`} />
+        <Stat n={sessions.filter((s) => s.status === 'completed').length} label="Sessions done" sub={`${m.free} free · ${m.billable} paid`} />
+        <Stat n={inr(m.earned)} label="Earned" sub={`${inr(m.collected)} collected from clients`} />
+        <Stat n={inr(m.due)} label="Still owed" sub={`${inr(m.paidOut)} paid out`} berry />
+      </div>
+
+      <div className="grid g2 sp">
+        <section className="card">
+          <h2>Profile</h2>
+          <ActionForm action={updateTrainee} className="form-grid">
+            <input type="hidden" name="id" value={t.id} />
+            <label className="field"><span>Full name</span><input name="full_name" defaultValue={t.full_name} required /></label>
+            <label className="field"><span>Email (Google login)</span><input name="email" type="email" defaultValue={t.email} required /></label>
+            <label className="field"><span>WhatsApp</span><input name="phone" defaultValue={t.phone ?? ''} /></label>
+            <label className="field"><span>Cohort</span>
+              <select name="cohort_id" defaultValue={t.cohort_id ?? ''}><option value="">No cohort</option>{d.cohorts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+            </label>
+            <label className="field"><span>Status</span>
+              <select name="status" defaultValue={t.status}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
+            </label>
+            <label className="field"><span>Max clients</span><input name="max_clients" type="number" min="0" defaultValue={t.max_clients} /></label>
+            <label className="field"><span>Pronouns</span><input name="pronouns" defaultValue={t.pronouns ?? ''} /></label>
+            <label className="field"><span>Languages</span><input name="languages" defaultValue={t.languages ?? ''} /></label>
+            <label className="field"><span>UPI ID</span><input name="upi_id" defaultValue={t.upi_id ?? ''} /></label>
+            <label className="field"><span>Qualifications</span><input name="qualifications" defaultValue={t.qualifications ?? ''} /></label>
+            <label className="field full"><span>Specialisations</span><input name="specialisations" defaultValue={t.specialisations ?? ''} /></label>
+            <label className="field full"><span>Bio</span><textarea name="bio" defaultValue={t.bio ?? ''} /></label>
+            <label className="field full"><span>Instructor notes <small>(only you see these)</small></span><textarea name="admin_notes" defaultValue={t.admin_notes ?? ''} /></label>
+            <div className="full row"><Submit>Save profile</Submit></div>
+          </ActionForm>
+          <ActionForm action={deleteTrainee} className="sp" confirm={`Remove ${t.full_name}? Their clients become unassigned.`}>
+            <input type="hidden" name="id" value={t.id} />
+            <Submit className="link" pendingText="Removing…">Remove trainee</Submit>
+          </ActionForm>
+        </section>
+
+        <div className="stack">
+          <section className="card">
+            <h2>Onboarding consent</h2>
+            <ConsentView consent={consent} />
+          </section>
+          <section className="card">
+            <h2>Assigned clients</h2>
+            {clients.length ? (
+              <ul className="feed">
+                {clients.map((c) => <li key={c.id}><span><Link href={`/admin/clients/${c.id}`}>{c.full_name}</Link> · <Pill status={c.status} /></span></li>)}
+              </ul>
+            ) : <p className="empty">No clients assigned. <Link href="/admin/clients?filter=unassigned">Assign one</Link></p>}
+          </section>
+        </div>
+
+        <section className="card span2">
+          <h2>Sessions</h2>
+          <SessionList sessions={sessions} role="admin" names={names} nameKey="client_id" hrefFor={(s) => `/admin/clients/${s.client_id}`} />
+        </section>
+
+        <section className="card">
+          <h2>Trainee’s feedback to Kirana <span className="fine">({feedback.length})</span></h2>
+          {feedback.length ? <div className="stack">{feedback.map((f) => <details className="box" key={f.id}><summary>{fmtDate(f.created_at)}</summary><div className="inner"><AnswersView questions={TRAINEE_FEEDBACK} answers={f.answers} /></div></details>)}</div> : <p className="empty">None yet.</p>}
+        </section>
+        <section className="card">
+          <h2>Client feedback <span className="fine">({fromClients.length})</span></h2>
+          {fromClients.length ? <div className="stack">{fromClients.map((f) => <details className="box" key={f.id}><summary>{names[f.client_id!]} · {fmtDate(f.created_at)}</summary><div className="inner"><AnswersView questions={CLIENT_FEEDBACK} answers={f.answers} /></div></details>)}</div> : <p className="empty">None yet.</p>}
+        </section>
+      </div>
+    </>
+  )
+}

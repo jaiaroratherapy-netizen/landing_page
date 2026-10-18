@@ -3,5 +3,12 @@ User-agent: *
 Allow: /
 # internal tool for the team
 Disallow: /verify.html
+# signed-in app and private links
+Disallow: /admin
+Disallow: /trainee
+Disallow: /client
+Disallow: /join/
+Disallow: /consent/
+Disallow: /api/
 
 Sitemap: https://kiranacounselling.com/sitemap.xml

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Affordable Online Therapy: 3 Free Sessions | Kirana Counselling</title>
 <meta name="description" content="Online therapy in Hindi & English by supervised trainee therapists. First three sessions free, then ₹299 per session. For adults 18+. Sign up in 2 minutes.">
-<link rel="canonical" href="https://onboarding.kiranacounselling.com/">
+<link rel="canonical" href="https://kiranacounselling.com/onboarding">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#EED9AE">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -17,29 +17,29 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kirana Counselling">
 <meta property="og:locale" content="en_IN">
-<meta property="og:url" content="https://onboarding.kiranacounselling.com/">
+<meta property="og:url" content="https://kiranacounselling.com/onboarding">
 <meta property="og:title" content="Affordable Therapy Initiative · Kirana Counselling">
 <meta property="og:description" content="Three FREE sessions, then ₹299/session. Online, in Hindi & English, by supervised trainee therapists.">
-<meta property="og:image" content="https://onboarding.kiranacounselling.com/og/og-therapy.png">
+<meta property="og:image" content="https://kiranacounselling.com/og/og-therapy.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Affordable Therapy Initiative: three free sessions, then ₹299 per session">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Affordable Therapy Initiative · Kirana Counselling">
 <meta name="twitter:description" content="Three FREE sessions, then ₹299/session. Online, in Hindi & English, by supervised trainee therapists.">
-<meta name="twitter:image" content="https://onboarding.kiranacounselling.com/og/og-therapy.png">
+<meta name="twitter:image" content="https://kiranacounselling.com/og/og-therapy.png">
 
 <!-- structured data for Google -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Service",
-  "@id": "https://onboarding.kiranacounselling.com/#service",
+  "@id": "https://kiranacounselling.com/onboarding#service",
   "name": "Affordable Therapy Initiative",
   "serviceType": "Online therapy (counselling)",
   "description": "Free and low-cost online therapy sessions by trainee therapists under active supervision at Kirana Counselling. Starts with an introductory call; the first three sessions are free, then ₹299 per session.",
-  "url": "https://onboarding.kiranacounselling.com/",
-  "image": "https://onboarding.kiranacounselling.com/og/og-therapy.png",
+  "url": "https://kiranacounselling.com/onboarding",
+  "image": "https://kiranacounselling.com/og/og-therapy.png",
   "provider": {
     "@type": "Organization",
     "@id": "https://kiranacounselling.com/#org",
@@ -57,7 +57,7 @@
   },
   "availableChannel": {
     "@type": "ServiceChannel",
-    "serviceUrl": "https://onboarding.kiranacounselling.com/",
+    "serviceUrl": "https://kiranacounselling.com/onboarding",
     "availableLanguage": [
       "Hindi",
       "English"
@@ -509,26 +509,6 @@
 (function(){
   var form = document.getElementById('form');
 
-  // Google Form that collects the responses (field ids from its prefill link)
-  var GF = {
-    action:    'https://docs.google.com/forms/d/e/1FAIpQLSfS45jnPXcl6k1ZnK6JhGAVhR6tbitsvC94ssRaqeH4wqWI4w/formResponse',
-    email:     'entry.482819398',
-    name:      'entry.397104031',
-    whatsapp:  'entry.83293265',
-    reason:    'entry.1141753952',
-    diagnosis: 'entry.205724390',
-    selfHarm:  'entry.1536438405',
-    org:       'entry.1084363178',
-    pref:      'entry.735445597',
-    identity:  'entry.2116766300',
-    agree:     'entry.1105352123'
-  };
-
-  async function sha256(text){
-    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf), function(b){ return ('0' + b.toString(16)).slice(-2); }).join('');
-  }
-
   function val(id){ return (document.getElementById(id).value || '').trim(); }
   function bad(id, on){ document.getElementById(id).classList.toggle('bad', !!on); }
 
@@ -714,36 +694,20 @@
     btn.disabled = true; document.getElementById('btnText').textContent = 'Sending…';
     errEl.classList.remove('on');
 
-    var mobile = await AadhaarQR.matchesMobile(verified, phone);
-    // same person → same ID hash, so repeat sign-ups line up in the responses sheet
-    var idHash = await sha256(
-      [verified.name.toLowerCase().replace(/\s+/g, ' '), verified.dob, verified.aadhaarLast4, verified.gender].join('|'));
-    var identity = [
-      verified.name,
-      'Aadhaar XXXX' + (verified.aadhaarLast4 || '????'),
-      'Born ' + (AadhaarQR.birthYear(verified.dob) || '?'),
-      'UIDAI signature valid (' + verified.verifiedBy + ')',
-      'Mobile match: ' + (mobile === true ? 'Yes' : mobile === false ? 'NO, differs from Aadhaar' : 'not checkable'),
-      'QR generated ' + (verified.generatedAt || '?'),
-      'ID hash ' + idHash.slice(0, 16),
-      'QR ' + verified.raw
-    ].join(' | ');
-
-    var body = new URLSearchParams();
-    body.append(GF.email,     val('email'));
-    body.append(GF.name,      val('name'));
-    body.append(GF.whatsapp,  phone);
-    body.append(GF.reason,    val('reason'));
-    body.append(GF.diagnosis, val('diag'));
-    body.append(GF.selfHarm,  harm.value);
-    body.append(GF.org,       val('org'));
-    body.append(GF.pref,      val('pref'));
-    body.append(GF.identity,  identity);
-    body.append(GF.agree,     'I understand and agree');
-
-    // Google Forms doesn't allow reading the response cross-origin (no-cors), so a
-    // network error is the only failure we can see; check the sheet when testing.
-    fetch(GF.action, { method:'POST', mode:'no-cors', body:body })
+    // the server re-checks the UIDAI signature and stores only the verified summary
+    fetch('/api/onboarding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email, name: val('name'), whatsapp: phone, reason: val('reason'), diagnosis: val('diag'),
+        selfHarm: harm.value, org: val('org'), pref: val('pref'), qr: verified.raw, agree: true
+      })
+    })
+      .then(function(res){
+        return res.json().catch(function(){ return {}; }).then(function(data){
+          if(!res.ok){ var e = new Error(data.error || 'Something went wrong. Please try again, or message us on WhatsApp.'); e.shown = true; throw e; }
+        });
+      })
       .then(function(){
         document.getElementById('thanksHi').textContent = 'Thank you, ' + val('name').split(' ')[0] + '!';
         document.getElementById('register').style.display = 'none';
@@ -754,7 +718,7 @@
       .catch(function(err){
         console.error(err);
         btn.disabled = false; document.getElementById('btnText').textContent = 'Submit 💛';
-        errEl.textContent = 'Something went wrong. Please try again, or message us on WhatsApp.';
+        errEl.textContent = err.shown ? err.message : 'Something went wrong. Please try again, or message us on WhatsApp.';
         errEl.classList.add('on');
       });
   });

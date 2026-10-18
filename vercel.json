@@ -1,28 +1,4 @@
 {
-    "rewrites": [
-        {
-            "source": "/",
-            "has": [
-                {
-                    "type": "host",
-                    "value": "potluck.kiranacounselling.com"
-                }
-            ],
-            "destination": "/diwali-meetup.html"
-        },
-        {
-            "source": "/",
-            "has": [
-                {
-                    "type": "host",
-                    "value": "onboarding.kiranacounselling.com"
-                }
-            ],
-            "destination": "/therapy.html"
-        },
-        {
-            "source": "/",
-            "destination": "/home.html"
-        }
-    ]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs"
 }
