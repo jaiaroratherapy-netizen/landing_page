@@ -9,7 +9,7 @@ export function AssignForm({ clientId, current, trainees, load }: { clientId: st
       <select name="trainee_id" defaultValue={current ?? ''} aria-label="Therapist" style={{ width: 'auto', minWidth: 180 }}>
         <option value="">Unassigned</option>
         {trainees.filter((t) => t.status !== 'completed').map((t) => (
-          <option key={t.id} value={t.id}>{t.full_name} ({load.get(t.id) ?? 0}/{t.max_clients}){t.status === 'invited' ? ' · not onboarded' : ''}</option>
+          <option key={t.id} value={t.id}>{t.full_name} ({load.get(t.id) ?? 0} clients){t.status === 'invited' ? ' · not onboarded' : ''}</option>
         ))}
       </select>
       <Submit className="btn small">Assign</Submit>

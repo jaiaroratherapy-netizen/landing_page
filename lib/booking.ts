@@ -72,9 +72,5 @@ export async function bookingProblem(clientId: string, clientTraineeId: string |
     .eq('client_id', clientId).eq('status', 'scheduled').eq('kind', kind).gt('scheduled_at', new Date().toISOString())
   if (kind === 'intro' && upcoming) return 'You already have an intro call booked. You can reschedule it from your dashboard.'
   if (kind === 'session' && (upcoming ?? 0) >= 2) return 'You already have 2 upcoming sessions. Book the next one after your next session.'
-  if (!clientTraineeId) {
-    const { count } = await db().from('clients').select('id', { head: true, count: 'exact' }).eq('trainee_id', t.id).in('status', ['assigned', 'active'])
-    if ((count ?? 0) >= t.max_clients) return `${t.full_name.split(' ')[0]} isn’t taking new clients right now. Please choose another therapist.`
-  }
   return null
 }

@@ -46,7 +46,7 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
                     </td>
                     <td>{t.cohort_id ? cohorts.get(t.cohort_id) : <span className="muted">—</span>}</td>
                     <td><Pill status={t.status} /></td>
-                    <td className="num">{d.clients.filter((c) => c.trainee_id === t.id).length} / {t.max_clients}</td>
+                    <td className="num">{d.clients.filter((c) => c.trainee_id === t.id).length}</td>
                     <td className="num">{d.sessions.filter((s) => s.trainee_id === t.id && therapyDone(s)).length}</td>
                     <td>{!calendar.has(t.id) ? <span className="muted">—</span> : calendar.get(t.id) ? <span className="pill berry">error</span> : <span className="pill sage">synced</span>}{!t.availability && <div className="fine">no hours set</div>}</td>
                     <td className="num">{inr(m.due)}</td>

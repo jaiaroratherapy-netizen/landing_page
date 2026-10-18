@@ -64,7 +64,7 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
       )}
 
       <div className="grid g4 sp">
-        <Stat n={clients.length} label="Clients" sub={`max ${t.max_clients}`} />
+        <Stat n={clients.length} label="Clients" />
         <Stat n={sessions.filter(therapyDone).length} label="Sessions done" sub={`${m.free} free · ${m.billable} paid`} />
         <Stat n={inr(m.earned)} label="Earned" sub={`${inr(m.collected)} collected from clients`} />
         <Stat n={inr(m.due)} label="Still owed" sub={`${inr(m.paidOut)} paid out`} berry />
@@ -84,7 +84,6 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
             <label className="field"><span>Status</span>
               <select name="status" defaultValue={t.status}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
             </label>
-            <label className="field"><span>Max clients</span><input name="max_clients" type="number" min="0" defaultValue={t.max_clients} /></label>
             <label className="field"><span>UPI ID</span><input name="upi_id" defaultValue={t.upi_id ?? ''} /></label>
             <label className="field full"><span>Instructor notes <small>(only you see these)</small></span><textarea name="admin_notes" defaultValue={t.admin_notes ?? ''} /></label>
             <div className="full row"><Submit>Save profile</Submit></div>

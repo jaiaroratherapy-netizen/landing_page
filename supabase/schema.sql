@@ -30,7 +30,6 @@ create table if not exists trainees (
   bio text,
   upi_id text,
   emergency_contact text,
-  max_clients int not null default 5,
   admin_notes text,
   -- public profile (/therapists/<slug>)
   slug text unique,

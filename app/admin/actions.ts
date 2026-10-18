@@ -95,7 +95,7 @@ export async function updateTrainee(fd: FormData): Promise<Result> {
     email, full_name: text(fd, 'full_name', 200) || undefined, phone: text(fd, 'phone', 30),
     cohort_id: text(fd, 'cohort_id'), status: (text(fd, 'status') as Trainee['status']) || 'invited',
     upi_id: text(fd, 'upi_id', 120),
-    max_clients: int(fd, 'max_clients') ?? 5, admin_notes: text(fd, 'admin_notes'), updated_at: new Date().toISOString(),
+    admin_notes: text(fd, 'admin_notes'), updated_at: new Date().toISOString(),
   }
   const { error } = await db().from('trainees').update(patch).eq('id', id)
   if (error) return { error: error.code === '23505' ? 'Another trainee already uses this email.' : 'Could not save.' }

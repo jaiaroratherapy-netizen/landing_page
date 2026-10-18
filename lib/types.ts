@@ -5,7 +5,7 @@ export type Trainee = {
   id: string; user_id: string | null; email: string; full_name: string; phone: string | null
   cohort_id: string | null; status: TraineeStatus; pronouns: string | null; languages: string | null
   qualifications: string | null; specialisations: string | null; bio: string | null; upi_id: string | null
-  emergency_contact: string | null; max_clients: number; admin_notes: string | null; created_at: string; updated_at: string
+  emergency_contact: string | null; admin_notes: string | null; created_at: string; updated_at: string
   slug: string | null; photo_url: string | null; intro_call_url: string | null; city: string | null; experience: string | null
   linkedin: string | null; availability: Availability | null; is_public: boolean; serene_username: string | null
 }
