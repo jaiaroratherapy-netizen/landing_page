@@ -38,26 +38,28 @@ export async function recentActivity(limit = 25) {
 
 /** Everything a trainee may see: their clients and those clients' sessions, consents, tracking and client feedback. */
 export async function loadForTrainee(traineeId: string) {
-  const { data: clients } = await db().from('clients').select('*').eq('trainee_id', traineeId).order('assigned_at', { ascending: false })
-  const ids = (clients ?? []).map((c) => c.id)
-  const none = ['00000000-0000-0000-0000-000000000000']
-  const [sessions, consents, tracking, clientFeedback, invites] = await Promise.all([
-    db().from('sessions').select('*').in('client_id', ids.length ? ids : none).order('scheduled_at'),
-    db().from('consents').select('*').eq('kind', 'client').in('client_id', ids.length ? ids : none).order('signed_at', { ascending: false }),
-    db().from('client_tracking').select('*').in('client_id', ids.length ? ids : none),
-    db().from('client_feedback').select('*').in('client_id', ids.length ? ids : none).order('created_at', { ascending: false }),
-    db().from('invites').select('*').eq('kind', 'client_consent').in('client_id', ids.length ? ids : none).order('created_at', { ascending: false }),
+  // one parallel round: related rows are filtered through their client's current therapist (inner join)
+  const viaClient = (table: string) =>
+    db().from(table).select('*, clients!inner(trainee_id)').eq('clients.trainee_id', traineeId)
+  const [{ data: clients }, sessions, consents, tracking, clientFeedback, invites] = await Promise.all([
+    db().from('clients').select('*').eq('trainee_id', traineeId).order('assigned_at', { ascending: false }),
+    viaClient('sessions').order('scheduled_at'),
+    viaClient('consents').eq('kind', 'client').order('signed_at', { ascending: false }),
+    viaClient('client_tracking'),
+    viaClient('client_feedback').order('created_at', { ascending: false }),
+    viaClient('invites').eq('kind', 'client_consent').order('created_at', { ascending: false }),
   ])
+  const rows = <T,>(r: { data: unknown[] | null }) => (r.data ?? []).map(({ clients: _, ...row }: any) => row) as T[]
   // billing numbers count every completed session of the client, even ones before a reassignment
-  const billed = billSessions((sessions.data ?? []) as Session[])
+  const billed = billSessions(rows<Session>(sessions))
   return {
     clients: (clients ?? []) as Client[],
     allSessions: billed,
     sessions: billed.filter((s) => s.trainee_id === traineeId),
-    consents: (consents.data ?? []) as Consent[],
-    tracking: (tracking.data ?? []) as Tracking[],
-    clientFeedback: (clientFeedback.data ?? []) as Feedback[],
-    invites: (invites.data ?? []) as Invite[],
+    consents: rows<Consent>(consents),
+    tracking: rows<Tracking>(tracking),
+    clientFeedback: rows<Feedback>(clientFeedback),
+    invites: rows<Invite>(invites),
   }
 }
 

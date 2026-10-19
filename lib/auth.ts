@@ -23,11 +23,13 @@ export function adminEmails() {
 /** The signed-in person and their role, or null. Links the auth user to their trainee/client row by email. */
 export const getViewer = cache(async (): Promise<Viewer | null> => {
   const supabase = await authClient()
-  const { data } = await supabase.auth.getUser()
-  const user = data.user
-  if (!user?.email) return null
+  // verified locally against the project's JWKS (cached), so no round trip to Supabase Auth per request
+  const { data } = await supabase.auth.getClaims()
+  const claims = data?.claims
+  if (!claims?.sub || typeof claims.email !== 'string' || !claims.email) return null
+  const user = { id: claims.sub, email: claims.email, user_metadata: (claims.user_metadata ?? {}) as Record<string, unknown> }
   const email = user.email.toLowerCase()
-  const name = (user.user_metadata?.full_name as string) || null
+  const name = (user.user_metadata.full_name as string) || null
 
   if (adminEmails().includes(email)) {
     return { userId: user.id, email, name, role: 'admin', trainee: null, client: null }

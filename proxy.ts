@@ -14,7 +14,8 @@ export async function proxy(request: NextRequest) {
       },
     },
   })
-  await supabase.auth.getUser()
+  // refreshes an expired session; the token is verified locally with the project's signing keys (no network call)
+  await supabase.auth.getClaims()
   return response
 }
 
