@@ -227,13 +227,19 @@
   .care a{color:var(--plum);font-weight:700}
 
   /* aadhaar verification */
-  .vbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .vbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media (max-width:520px){.vbtns{grid-template-columns:1fr 1fr}.vbtns .vbtn:last-child{grid-column:1/-1;min-height:64px;flex-direction:row}}
   .vbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;min-height:96px;
     border:2px dashed var(--line);border-radius:14px;padding:14px 10px;background:var(--cream-2);cursor:pointer;
     font-family:"Karla",sans-serif;font-size:14.5px;font-weight:700;color:var(--plum);transition:border-color .15s,background .15s}
   .vbtn:hover{border-color:var(--berry);background:rgba(166,43,78,.06)}
   .vbtn svg{width:28px;height:28px;color:var(--berry)}
   .vbtn input{display:none}
+  .vbtn.small{min-height:0;padding:10px 16px;flex-direction:row;border-style:solid;font-size:14px}
+  .pdfpass{margin-top:12px;padding:14px;border-radius:14px;background:var(--cream-2);border:1.5px solid var(--line)}
+  .pdfpass .hint{margin:4px 0 10px}
+  .pwrow{display:flex;gap:8px}
+  .pwrow input{flex:1;min-width:0;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
   .privacy{display:flex;gap:8px;font-size:12.5px;color:var(--muted);margin:12px 0 0;line-height:1.5}
   .privacy svg{flex:0 0 15px;width:15px;height:15px;margin-top:2px;color:var(--plum)}
   .scanner{position:relative;border-radius:14px;overflow:hidden;background:#1d0f1c;aspect-ratio:1}
@@ -413,7 +419,6 @@
         <div class="opts" role="radiogroup">
           <label class="opt"><input type="radio" name="self_harm" value="Yes"><span>Yes</span></label>
           <label class="opt"><input type="radio" name="self_harm" value="No"><span>No</span></label>
-          <label class="opt"><input type="radio" name="self_harm" value="Prefer not to say"><span>Prefer not to say</span></label>
         </div>
         <div class="care" id="care">
           Thank you for telling us. You don’t have to wait for us. If you’re in distress right now, please call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24×7, in many Indian languages) or <a href="tel:112">112</a> in an emergency. You can still submit this form. We’ll help you find the right support.
@@ -449,10 +454,23 @@
               Pick a photo or screenshot
               <input type="file" id="qrFile" accept="image/*">
             </label>
+            <label class="vbtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M9 11h2"/></svg>
+              Upload e-Aadhaar PDF
+              <input type="file" id="pdfFile" accept="application/pdf,.pdf">
+            </label>
+          </div>
+          <div class="pdfpass" id="pdfPass" hidden>
+            <label for="pdfPw"><b>Enter your e-Aadhaar password</b></label>
+            <p class="hint">It’s the first 4 letters of your name in CAPITAL letters + your year of birth. For example, <b>ASHA1999</b> for Asha Sharma born in 1999.</p>
+            <div class="pwrow">
+              <input type="text" id="pdfPw" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD1999">
+              <button type="button" class="vbtn small" id="pdfUnlock">Unlock</button>
+            </div>
           </div>
           <p class="privacy">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-            <span>Your photo never leaves your phone. We check UIDAI’s digital signature right here and only receive your verified name, birth year, the last 4 digits of your Aadhaar and the signed QR data. We never see your full Aadhaar number.</span>
+            <span>Your photo or PDF never leaves your phone. We check UIDAI’s digital signature right here and only receive your verified name, birth year, the last 4 digits of your Aadhaar and the signed QR data. We never see your full Aadhaar number.</span>
           </p>
         </div>
 
@@ -503,6 +521,7 @@
   </footer>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/zxing-wasm@3.1.4/dist/iife/reader/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script src="aadhaar-qr.js"></script>
 <script>
@@ -571,6 +590,35 @@
     return code ? code.data : null;
   }
 
+  // ZXing (C++ compiled to WebAssembly) reads dense Aadhaar QRs far better and faster than jsQR
+  async function zxing(source, w, h){
+    if(!window.ZXingWASM) return null;
+    try {
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      var ctx = c.getContext('2d', {willReadFrequently:true});
+      ctx.drawImage(source, 0, 0, w, h);
+      var res = await ZXingWASM.readBarcodes(ctx.getImageData(0, 0, w, h), {formats:['QRCode'], tryHarder:true, maxNumberOfSymbols:4});
+      return pick(res.map(function(r){ return r.text; }));
+    } catch(e){ console.warn(e); return null; }
+  }
+
+  // native reader, then ZXing, then jsQR, at a few sizes
+  async function decodeImage(img){
+    var big = Math.max(img.width, img.height);
+    var found = await native(img);
+    var sizes = [2000, 1400, 2800];
+    for(var i = 0; !found && i < sizes.length; i++){
+      var k = Math.min(1, sizes[i] / big);
+      found = await zxing(img, Math.round(img.width * k), Math.round(img.height * k));
+    }
+    [1600, 1000].forEach(function(s){
+      if(found) return;
+      var k = Math.min(1, s / big);
+      found = jsqr(img, Math.round(img.width * k), Math.round(img.height * k), true);
+    });
+    return found;
+  }
+
   async function accept(text){
     status('Checking UIDAI’s digital signature…', 'busy');
     try {
@@ -610,17 +658,65 @@
     status('Reading the QR code…', 'busy');
     try {
       var img = await createImageBitmap(f);
-      var big = Math.max(img.width, img.height);
-      var found = await native(img);
-      [1600, 1000, 2400].forEach(function(s){
-        if(found) return;
-        var k = Math.min(1, s / big);
-        found = jsqr(img, Math.round(img.width * k), Math.round(img.height * k), true);
-      });
+      var found = await decodeImage(img);
       if(!found){ status(MESSAGES.NO_QR, 'error'); return; }
       accept(found);
     } catch(err){ console.error(err); status(MESSAGES.NO_QR, 'error'); }
   });
+
+  // e-Aadhaar PDF (password protected): render each page with pdf.js and read the QR from it
+  var pdfBytes = null, pdfLib = null;
+  async function loadPdfJs(){
+    if(pdfLib) return pdfLib;
+    pdfLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.min.mjs');
+    pdfLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.worker.min.mjs';
+    return pdfLib;
+  }
+  async function readPdf(password){
+    status('Opening your e-Aadhaar…', 'busy');
+    var lib = await loadPdfJs();
+    var doc;
+    try {
+      doc = await lib.getDocument({data: pdfBytes.slice(0), password: password || undefined}).promise;
+    } catch(err){
+      if(err && err.name === 'PasswordException'){
+        $('pdfPass').hidden = false;
+        status(err.code === 2 ? 'That password didn’t work. Check the 4 capital letters and the birth year.' : null, err.code === 2 ? 'error' : null);
+        $('pdfPw').focus();
+        return;
+      }
+      throw err;
+    }
+    $('pdfPass').hidden = true;
+    status('Finding the QR code in your e-Aadhaar…', 'busy');
+    for(var n = 1; n <= Math.min(doc.numPages, 3); n++){
+      var page = await doc.getPage(n);
+      var viewport = page.getViewport({scale: 3});
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(viewport.width); canvas.height = Math.round(viewport.height);
+      var ctx = canvas.getContext('2d', {willReadFrequently:true});
+      await page.render({canvasContext: ctx, canvas: canvas, viewport: viewport}).promise;
+      var found = await decodeImage(canvas);
+      if(found){ pdfBytes = null; accept(found); return; }
+    }
+    status('We couldn’t find the Aadhaar QR in this PDF. Please upload the e-Aadhaar downloaded from myaadhaar.uidai.gov.in.', 'error');
+  }
+  $('pdfFile').addEventListener('change', async function(){
+    var f = this.files[0]; this.value = '';
+    if(!f) return;
+    try {
+      pdfBytes = new Uint8Array(await f.arrayBuffer());
+      $('pdfPw').value = '';
+      await readPdf();
+    } catch(err){ console.error(err); status('We couldn’t open that PDF. Please try again, or scan the QR with your camera.', 'error'); }
+  });
+  async function unlock(){
+    var pw = $('pdfPw').value.trim().toUpperCase().replace(/\s+/g, '');
+    if(!pdfBytes || !pw) return;
+    try { await readPdf(pw); } catch(err){ console.error(err); status('We couldn’t open that PDF. Please try again.', 'error'); }
+  }
+  $('pdfUnlock').addEventListener('click', unlock);
+  $('pdfPw').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); unlock(); } });
 
   // live camera scanning
   async function startCam(){
@@ -646,10 +742,10 @@
       var k = Math.min(1, 1000 / side);
       var crop = document.createElement('canvas'); crop.width = crop.height = Math.round(side * k);
       crop.getContext('2d').drawImage(video, (vw - side) / 2, (vh - side) / 2, side, side, 0, 0, crop.width, crop.height);
-      var text = (await native(crop)) || jsqr(crop, crop.width, crop.height, false);
+      var text = (await native(crop)) || (await zxing(crop, crop.width, crop.height)) || jsqr(crop, crop.width, crop.height, false);
       if(text && scanning){ stopCam(); accept(text); return; }
     }
-    scanTimer = setTimeout(tick, 180);
+    scanTimer = setTimeout(tick, 120);
   }
   function stopCam(){
     scanning = false; clearTimeout(scanTimer);

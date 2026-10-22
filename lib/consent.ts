@@ -1,7 +1,7 @@
 import 'server-only'
 import { randomBytes } from 'node:crypto'
 import { headers } from 'next/headers'
-import { CONSENT_ITEMS } from './forms'
+import { consentItems } from './forms'
 
 export function newToken() {
   return randomBytes(24).toString('base64url')
@@ -12,20 +12,25 @@ export type ParsedConsent = {
   user_agent: string | null; ip: string | null
 }
 
-export async function parseConsent(fd: FormData): Promise<{ error: string } | { value: ParsedConsent }> {
+export async function parseConsent(fd: FormData, kind: 'trainee' | 'client'): Promise<{ error: string } | { value: ParsedConsent }> {
   const consent_date = String(fd.get('consent_date') || '')
-  const emergency_contact = String(fd.get('emergency_contact') || '').trim()
+  const ecName = String(fd.get('ec_name') || '').trim().replace(/\s+/g, ' ')
+  const ecRelation = String(fd.get('ec_relation') || '').trim().replace(/\s+/g, ' ')
+  const ecPhone = String(fd.get('ec_phone') || '').replace(/[^\d+]/g, '')
   const signature = String(fd.get('signature') || '').trim().replace(/\s+/g, ' ')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(consent_date)) return { error: 'Please fill in the date.' }
-  if (emergency_contact.length < 5) return { error: 'Please share an emergency contact with their name.' }
+  if (ecName.length < 2) return { error: 'Please add your emergency contact’s name.' }
+  if (!ecRelation) return { error: 'Please add how your emergency contact is related to you.' }
+  if (ecPhone.replace(/\D/g, '').length < 10) return { error: 'Please add a valid phone number for your emergency contact.' }
+  const emergency_contact = `${ecName} (${ecRelation}), ${ecPhone}`.slice(0, 300)
   if (signature.length < 3) return { error: 'Please type your full name as your signature.' }
 
   const answers: Record<string, boolean> = {}
-  for (const item of CONSENT_ITEMS) {
+  for (const item of consentItems(kind)) {
     const v = fd.get(`c_${item.key}`)
-    if (v !== 'yes' && v !== 'no') return { error: 'Please answer Yes or No for every statement.' }
+    if (v !== 'yes' && v !== 'no') return { error: `Please answer: “${item.label}”` }
     answers[item.key] = v === 'yes'
-    if ('required' in item && item.required && v !== 'yes') return { error: `To continue you need to agree to: “${item.label}”` }
+    if (item.required && v !== 'yes') return { error: `To continue you need to agree to: “${item.label}”` }
   }
   const h = await headers()
   return {

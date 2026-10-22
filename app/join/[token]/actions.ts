@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { getViewer, logActivity } from '@/lib/auth'
 import { db } from '@/lib/supabase'
+import { emailTraineeOnboarded } from '@/lib/notify'
 import { parseConsent, text } from '@/lib/consent'
 import type { Invite, Trainee } from '@/lib/types'
 
@@ -14,7 +15,7 @@ export async function completeOnboarding(token: string, fd: FormData) {
   if (!trainee) return { error: 'This link is no longer valid.' }
   if (!viewer || viewer.email !== trainee.email) return { error: `Please sign in with ${trainee.email} first.` }
 
-  const parsed = await parseConsent(fd)
+  const parsed = await parseConsent(fd, 'trainee')
   if ('error' in parsed) return { error: parsed.error }
 
   const { error } = await db().from('consents').insert({ kind: 'trainee', trainee_id: trainee.id, invite_token: token, ...parsed.value })
@@ -30,5 +31,6 @@ export async function completeOnboarding(token: string, fd: FormData) {
     }).eq('id', trainee.id),
   ])
   await logActivity(viewer.email, 'completed trainee onboarding', 'trainee', trainee.id, trainee.full_name)
+  await emailTraineeOnboarded(trainee.id)
   redirect('/trainee/profile?welcome=1')
 }

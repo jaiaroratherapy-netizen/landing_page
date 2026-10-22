@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getViewer, logActivity } from '@/lib/auth'
 import { db } from '@/lib/supabase'
+import { emailBooking } from '@/lib/notify'
 import { fmtDateTime, istInputToIso } from '@/lib/format'
 import { text } from '@/lib/consent'
 import { syncSessionEvent } from '@/lib/google'
@@ -52,6 +53,7 @@ export async function bookSession(fd: FormData): Promise<Result> {
   }).select('id').single()
   if (error) return { error: error.code === '23505' ? 'There is already a booking at that exact time.' : 'Could not book the session.' }
   await syncSessionEvent(row.id)
+  await emailBooking(row.id, 'booked')
   if (client.status === 'assigned') await db().from('clients').update({ status: 'active' }).eq('id', client.id)
   await logActivity(viewer.email, 'booked a session', 'client', client.id, `${client.full_name} on ${fmtDateTime(at)}`)
   refresh()
@@ -69,6 +71,7 @@ export async function rescheduleSession(fd: FormData): Promise<Result> {
   const { error } = await db().from('sessions').update(patch).eq('id', g.s.id)
   if (error) return { error: error.code === '23505' ? 'There is already a booking at that exact time.' : 'Could not reschedule.' }
   await syncSessionEvent(g.s.id)
+  await emailBooking(g.s.id, 'rescheduled')
   await logActivity(g.viewer.email, 'rescheduled a session', 'session', g.s.id, `to ${fmtDateTime(at)}`)
   refresh()
   return { ok: 'Rescheduled.' }
@@ -82,6 +85,7 @@ export async function cancelSession(fd: FormData): Promise<Result> {
     status: 'cancelled', cancelled_by: g.viewer.role, cancel_reason: text(fd, 'reason', 500), updated_at: new Date().toISOString(),
   }).eq('id', g.s.id)
   await syncSessionEvent(g.s.id)
+  await emailBooking(g.s.id, 'cancelled')
   await logActivity(g.viewer.email, 'cancelled a session', 'session', g.s.id, text(fd, 'reason', 200) ?? undefined)
   refresh()
   return { ok: 'Cancelled.' }
@@ -100,6 +104,7 @@ export async function updateSessionStatus(fd: FormData): Promise<Result> {
   if (fd.has('meeting_link')) patch.meeting_link = text(fd, 'meeting_link', 500)
   await db().from('sessions').update(patch).eq('id', g.s.id)
   if ((status === 'cancelled') !== (g.s.status === 'cancelled') || patch.meeting_link !== undefined && patch.meeting_link !== g.s.meeting_link) await syncSessionEvent(g.s.id)
+  if (status === 'cancelled' && g.s.status !== 'cancelled') await emailBooking(g.s.id, 'cancelled')
   if (status !== g.s.status) await logActivity(g.viewer.email, `marked a session ${status.replace('_', '-')}`, 'session', g.s.id)
   refresh()
   return { ok: 'Saved.' }

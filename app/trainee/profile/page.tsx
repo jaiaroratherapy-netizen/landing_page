@@ -46,7 +46,7 @@ export default async function TraineeProfile({ searchParams }: { searchParams: P
           <ActionForm action={updateMyProfile} className="form-grid">
             <label className="field"><span>Full name</span><input name="full_name" defaultValue={t.full_name} required /></label>
             <label className="field"><span>WhatsApp</span><input name="phone" defaultValue={t.phone ?? ''} /></label>
-            <label className="field"><span>UPI ID <small>(for payouts)</small></span><input name="upi_id" defaultValue={t.upi_id ?? ''} /></label>
+            <label className="field"><span>UPI ID <small>(clients pay you here from session 4)</small></span><input name="upi_id" defaultValue={t.upi_id ?? ''} /></label>
             <label className="field"><span>Emergency contact</span><input name="emergency_contact" defaultValue={t.emergency_contact ?? ''} /></label>
             <div className="full"><Submit>Save</Submit></div>
           </ActionForm>

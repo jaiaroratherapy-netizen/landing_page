@@ -85,14 +85,13 @@ export function countBy<T>(rows: T[], key: (r: T) => string | null | undefined) 
   return [...m.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)
 }
 
-export type Earnings = { billable: number; earned: number; collected: number; paidOut: number; due: number; free: number }
+export type Earnings = { billable: number; earned: number; collected: number; free: number }
 
-/** Money per trainee: billable sessions (4th onward), what clients paid, what Kirana paid out, what is still owed. */
-export function earningsFor(traineeId: string, sessions: BilledSession[], payouts: Payout[]): Earnings {
+/** Money per trainee: billable sessions (4th onward) and what clients have paid. Clients pay trainees directly. */
+export function earningsFor(traineeId: string, sessions: BilledSession[]): Earnings {
   const done = sessions.filter((s) => s.trainee_id === traineeId && therapyDone(s))
   const billable = done.filter((s) => s.fee > 0)
   const earned = billable.reduce((a, s) => a + s.fee, 0)
   const collected = billable.filter((s) => s.client_paid).reduce((a, s) => a + s.fee, 0)
-  const paidOut = payouts.filter((p) => p.trainee_id === traineeId).reduce((a, p) => a + p.amount, 0)
-  return { billable: billable.length, earned, collected, paidOut, due: Math.max(0, earned - paidOut), free: done.length - billable.length }
+  return { billable: billable.length, earned, collected, free: done.length - billable.length }
 }

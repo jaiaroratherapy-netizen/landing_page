@@ -13,7 +13,7 @@ import { bookSession } from '@/app/actions/sessions'
 import { CLIENT_FEEDBACK } from '@/lib/forms'
 import { fmtDate } from '@/lib/format'
 
-const STATUSES = ['new', 'assigned', 'active', 'paused', 'dropped', 'completed']
+const STATUSES = ['unassigned', 'assigned', 'active', 'paused', 'dropped', 'completed']
 
 export default async function ClientDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

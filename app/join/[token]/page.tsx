@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { getViewer } from '@/lib/auth'
 import { db } from '@/lib/supabase'
 import { ConsentFields } from '@/components/ConsentFields'
+import { ContractView } from '@/components/ContractView'
+import { TRAINEE_CONTRACT } from '@/lib/contracts'
 import { ActionForm, Submit } from '@/components/ActionForm'
 import { GoogleIcon } from '@/components/GoogleIcon'
 import { signInWithGoogle } from '@/app/login/actions'
@@ -52,15 +54,17 @@ export default async function Join({ params }: { params: Promise<{ token: string
       <div className="sheet">
         <header>
           <img src="/kirana-logo.png" alt="Kirana Counselling" />
-          <h1>Trainee onboarding & consent</h1>
-          <p className="muted">Hi {first}! Please read each statement and answer Yes or No. Signed in as {viewer.email}.</p>
+          <h1>{TRAINEE_CONTRACT.title}</h1>
+          <p className="muted">Hi {first}! Please read the contract, then answer each statement below. Signed in as {viewer.email}.</p>
         </header>
-        <ActionForm action={completeOnboarding.bind(null, token)} className="stack">
+        <ContractView contract={TRAINEE_CONTRACT} />
+        <ActionForm action={completeOnboarding.bind(null, token)} className="stack" draftKey={`join:${token}`}>
+          <h2 className="consent-head">Your consent</h2>
           <label className="field">
             <span>Your WhatsApp number</span>
             <input name="phone" type="tel" defaultValue={trainee.phone ?? ''} placeholder="98xxxxxx10" />
           </label>
-          <ConsentFields />
+          <ConsentFields kind="trainee" />
           <Submit pendingText="Submitting…">Submit & continue</Submit>
         </ActionForm>
       </div>

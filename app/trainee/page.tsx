@@ -6,18 +6,17 @@ import { Bars, Donut, Lines } from '@/components/Charts'
 import { Stat } from '@/components/Stat'
 import { SessionList } from '@/components/SessionList'
 import { inr, therapyDone } from '@/lib/money'
-import type { Invite, Payout } from '@/lib/types'
+import type { Invite } from '@/lib/types'
 
 export default async function TraineeHome() {
   const me = await requireRole('trainee')
   const t = me.trainee
-  const [d, payouts, { data: invite }] = await Promise.all([
+  const [d, { data: invite }] = await Promise.all([
     loadForTrainee(t.id),
-    db().from('payouts').select('*').eq('trainee_id', t.id).then((r) => (r.data ?? []) as Payout[]),
     db().from('invites').select('*').eq('trainee_id', t.id).eq('kind', 'trainee_onboarding').is('used_at', null).gt('expires_at', new Date().toISOString()).maybeSingle<Invite>(),
   ])
   const now = Date.now()
-  const m = earningsFor(t.id, d.sessions, payouts)
+  const m = earningsFor(t.id, d.sessions)
   const completed = d.sessions.filter(therapyDone)
   const upcoming = d.sessions.filter((s) => s.status === 'scheduled' && new Date(s.scheduled_at).getTime() > now - 3600_000)
   const overdue = d.sessions.filter((s) => s.status === 'scheduled' && new Date(s.scheduled_at).getTime() <= now - 3600_000)
@@ -60,7 +59,7 @@ export default async function TraineeHome() {
         <Stat n={d.clients.length} label="My clients" sub={`${noConsent.length} consent pending`} />
         <Stat n={upcoming.length} label="Upcoming sessions" />
         <Stat n={completed.length} label="Sessions done" sub={`${m.free} free · ${m.billable} paid`} />
-        <Stat n={inr(m.earned)} label="Earned" sub={`${inr(m.paidOut)} paid out · ${inr(m.due)} due`} berry />
+        <Stat n={inr(m.earned)} label="Earned" sub={`${inr(m.collected)} marked paid · ${m.billable} paid sessions`} berry />
       </div>
 
       <div className="grid g2 sp">

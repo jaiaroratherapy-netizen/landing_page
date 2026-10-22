@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { db } from '@/lib/supabase'
 import { ConsentFields } from '@/components/ConsentFields'
+import { ContractView } from '@/components/ContractView'
+import { CLIENT_CONTRACT } from '@/lib/contracts'
 import { ActionForm, Submit } from '@/components/ActionForm'
 import { signClientConsent } from './actions'
 import type { Client, Invite, Trainee } from '@/lib/types'
@@ -22,8 +24,8 @@ export default async function ConsentPage({ params }: { params: Promise<{ token:
       <div className="sheet">
         <header>
           <img src="/kirana-logo.png" alt="Kirana Counselling" />
-          <h1>Client consent form</h1>
-          {valid && <p className="muted">Hi {client.full_name.split(' ')[0]}! {trainee ? `${trainee.full_name} will be your therapist. ` : ''}Please read each statement and answer Yes or No.</p>}
+          <h1>{CLIENT_CONTRACT.title}</h1>
+          {valid && <p className="muted">Hi {client.full_name.split(' ')[0]}! {trainee ? `${trainee.full_name} will be your therapist. ` : ''}Please read the contract, then answer each statement below.</p>}
         </header>
         {!valid ? (
           <div className="stack">
@@ -33,10 +35,14 @@ export default async function ConsentPage({ params }: { params: Promise<{ token:
             <Link className="btn" href="/login">Sign in</Link>
           </div>
         ) : (
-          <ActionForm action={signClientConsent.bind(null, token)} className="stack">
-            <ConsentFields />
+          <>
+          <ContractView contract={CLIENT_CONTRACT} />
+          <ActionForm action={signClientConsent.bind(null, token)} className="stack" draftKey={`consent:${token}`} hideOnSuccess>
+            <h2 className="consent-head">Your consent</h2>
+            <ConsentFields kind="client" />
             <Submit pendingText="Submitting…">Sign consent form</Submit>
           </ActionForm>
+          </>
         )}
       </div>
     </main>

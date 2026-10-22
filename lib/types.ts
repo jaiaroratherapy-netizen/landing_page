@@ -13,14 +13,14 @@ export type Trainee = {
 export type Slot = { start_time: string; end_time: string }
 export type Availability = Partial<Record<'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday', Slot[]>>
 
-export type ClientStatus = 'new' | 'assigned' | 'active' | 'paused' | 'dropped' | 'completed'
+export type ClientStatus = 'unassigned' | 'assigned' | 'active' | 'paused' | 'dropped' | 'completed'
 export type Client = {
   id: string; user_id: string | null; email: string; full_name: string; whatsapp: string | null
   reason: string | null; diagnosis: string | null; self_harm: string | null; org: string | null; pref: string | null
   aadhaar_last4: string | null; birth_year: number | null; gender: string | null; id_hash: string | null
   id_verified_by: string | null; mobile_match: boolean | null; qr_generated_at: string | null
   pronouns: string | null; emergency_contact: string | null; trainee_id: string | null; assigned_at: string | null
-  status: ClientStatus; admin_notes: string | null; created_at: string; updated_at: string
+  status: ClientStatus; admin_notes: string | null; notified_trainee_id: string | null; created_at: string; updated_at: string
 }
 
 export type Invite = {

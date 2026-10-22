@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { logActivity, requireRole } from '@/lib/auth'
 import { db } from '@/lib/supabase'
+import { emailConsentLink } from '@/lib/notify'
 import { bool, int, newToken, text } from '@/lib/consent'
 import { TRAINEE_FEEDBACK } from '@/lib/forms'
 import { parsePublicProfile } from '@/lib/profile-form'
@@ -79,10 +80,12 @@ export async function createConsentLink(fd: FormData): Promise<Result> {
   if (!client) return { error: 'This client is not assigned to you.' }
   // only one live link per client
   await db().from('invites').update({ expires_at: new Date().toISOString() }).eq('client_id', client.id).eq('kind', 'client_consent').is('used_at', null)
-  await db().from('invites').insert({ token: newToken(), kind: 'client_consent', client_id: client.id, trainee_id: me.trainee.id, created_by: me.email })
+  const token = newToken()
+  await db().from('invites').insert({ token, kind: 'client_consent', client_id: client.id, trainee_id: me.trainee.id, created_by: me.email })
+  await emailConsentLink(client.id, token)
   await logActivity(me.email, 'created a consent link', 'client', client.id, client.full_name)
   revalidatePath(`/trainee/clients/${client.id}`)
-  return { ok: 'Consent link ready. Copy it or send it on WhatsApp.' }
+  return { ok: `Consent link ready and emailed to ${client.email}. You can also send it on WhatsApp.` }
 }
 
 export async function saveTracking(fd: FormData): Promise<Result> {

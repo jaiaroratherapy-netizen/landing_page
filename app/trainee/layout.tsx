@@ -8,11 +8,12 @@ const NAV = [
   { href: '/trainee', label: 'Dashboard', icon: '◎' },
   { href: '/trainee/clients', label: 'My clients', icon: '♡' },
   { href: '/trainee/sessions', label: 'Sessions', icon: '◷' },
+  { href: '/trainee/messages', label: 'Messages', icon: '✉' },
   { href: '/trainee/feedback', label: 'Feedback', icon: '✎' },
   { href: '/trainee/profile', label: 'Profile', icon: '☺' },
 ]
 
 export default async function TraineeLayout({ children }: { children: React.ReactNode }) {
   const me = await requireRole('trainee')
-  return <AppShell title="Therapist" who={me.email} nav={NAV}>{children}</AppShell>
+  return <AppShell title="Therapist" user={{ name: me.trainee.full_name, email: me.email, photo: me.trainee.photo_url ?? me.avatar, profileHref: '/trainee/profile' }} nav={NAV}>{children}</AppShell>
 }

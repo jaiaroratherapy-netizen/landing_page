@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { loadEverything, recentActivity, weekly, countBy, earningsFor } from '@/lib/data'
 import { Bars, Donut, Lines } from '@/components/Charts'
-import { CONSENT_ITEMS } from '@/lib/forms'
+import { CLIENT_CONSENT_ITEMS } from '@/lib/forms'
 import { fmtDateTime } from '@/lib/format'
 import { inr, therapyDone } from '@/lib/money'
 import { Stat } from '@/components/Stat'
@@ -17,8 +17,8 @@ export default async function Overview() {
   const flagged = d.clients.filter((c) => c.self_harm === 'Yes' && !['dropped', 'completed'].includes(c.status))
   const clientConsents = d.consents.filter((c) => c.kind === 'client')
   const consentedClients = new Set(clientConsents.map((c) => c.client_id))
-  const money = d.trainees.map((t) => earningsFor(t.id, d.sessions, d.payouts))
-  const totals = money.reduce((a, m) => ({ earned: a.earned + m.earned, due: a.due + m.due, paidOut: a.paidOut + m.paidOut, collected: a.collected + m.collected }), { earned: 0, due: 0, paidOut: 0, collected: 0 })
+  const money = d.trainees.map((t) => earningsFor(t.id, d.sessions))
+  const totals = money.reduce((a, m) => ({ earned: a.earned + m.earned, collected: a.collected + m.collected }), { earned: 0, collected: 0 })
   const sessionsPerClient = new Map<string, number>()
   completed.forEach((s) => sessionsPerClient.set(s.client_id, (sessionsPerClient.get(s.client_id) ?? 0) + 1))
 
@@ -51,7 +51,7 @@ export default async function Overview() {
     .sort((a, b) => b.sessions - a.sessions)
     .slice(0, 12)
 
-  const consentRates = CONSENT_ITEMS.map((item) => ({
+  const consentRates = CLIENT_CONSENT_ITEMS.map((item) => ({
     item: item.key.replace('_', ' '),
     yes: clientConsents.filter((c) => c.answers[item.key]).length,
     no: clientConsents.filter((c) => !c.answers[item.key]).length,
@@ -87,7 +87,7 @@ export default async function Overview() {
         <Stat n={d.trainees.length} label="Trainees" sub={`${d.trainees.filter((t) => t.status === 'invited').length} yet to onboard`} />
         <Stat n={d.clients.length} label="Clients" sub={`${unassigned.length} waiting for a therapist`} />
         <Stat n={completed.length} label="Sessions completed" sub={`${upcoming.length} upcoming`} />
-        <Stat n={inr(totals.due)} label="Owed to trainees" sub={`${inr(totals.earned)} earned · ${inr(totals.paidOut)} paid`} berry />
+        <Stat n={inr(totals.earned)} label="Earned by trainees" sub={`${inr(totals.collected)} marked paid by clients`} berry />
       </div>
 
       <div className="grid g2 sp">

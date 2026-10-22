@@ -8,7 +8,7 @@ import { AnswersView } from '@/components/AnswersView'
 import { SessionList } from '@/components/SessionList'
 import { Pill } from '@/components/Pill'
 import { Stat } from '@/components/Stat'
-import { deleteTrainee, newTraineeLink, updateTrainee, updateTraineePublic, uploadTraineePhoto } from '../../actions'
+import { deleteTrainee, emailOnboardingLink, newTraineeLink, updateTrainee, updateTraineePublic, uploadTraineePhoto } from '../../actions'
 import { Avatar, PhotoInput } from '@/components/PhotoInput'
 import { ProfileFields } from '@/components/ProfileFields'
 import { TRAINEE_FEEDBACK, CLIENT_FEEDBACK } from '@/lib/forms'
@@ -30,7 +30,7 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
   const clients = d.clients.filter((c) => c.trainee_id === t.id)
   const names = Object.fromEntries(d.clients.map((c) => [c.id, c.full_name]))
   const sessions = d.sessions.filter((s) => s.trainee_id === t.id).reverse()
-  const m = earningsFor(t.id, d.sessions, d.payouts)
+  const m = earningsFor(t.id, d.sessions)
   const feedback = d.traineeFeedback.filter((f) => f.trainee_id === t.id)
   const fromClients = d.clientFeedback.filter((f) => f.trainee_id === t.id)
   const base = await origin()
@@ -54,6 +54,10 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
             <CopyLink url={`${base}/join/${invite.token}`} whatsapp={t.phone} message={`Hi ${t.full_name.split(' ')[0]}! Please complete your Kirana Counselling onboarding & consent form (sign in with ${t.email}):`} />
           ) : <p className="muted">No active link.</p>}
           <p className="fine sp">Expires {invite ? fmtDate(invite.expires_at) : '—'}.</p>
+          <ActionForm action={emailOnboardingLink} className="row sp">
+            <input type="hidden" name="trainee_id" value={t.id} />
+            <Submit className="btn small" pendingText="Sending…">Email this link to {t.email}</Submit>
+          </ActionForm>
         </section>
       )}
       {!invite && !consent && (
@@ -63,11 +67,10 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
         </ActionForm>
       )}
 
-      <div className="grid g4 sp">
+      <div className="grid g3 sp">
         <Stat n={clients.length} label="Clients" />
         <Stat n={sessions.filter(therapyDone).length} label="Sessions done" sub={`${m.free} free · ${m.billable} paid`} />
-        <Stat n={inr(m.earned)} label="Earned" sub={`${inr(m.collected)} collected from clients`} />
-        <Stat n={inr(m.due)} label="Still owed" sub={`${inr(m.paidOut)} paid out`} berry />
+        <Stat n={inr(m.earned)} label="Earned" sub={`${inr(m.collected)} marked paid by clients`} berry />
       </div>
 
       <div className="grid g2 sp">

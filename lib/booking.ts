@@ -44,8 +44,11 @@ export async function freeSlots(trainee: { id: string; availability: Availabilit
     const weekday = DAYS[(ist.getUTCDay() + 6) % 7]
     const slots: Slot[] = []
     for (const w of trainee.availability?.[weekday] ?? []) {
-      const winStart = Date.parse(`${ymd}T${w.start_time}:00+05:30`)
-      const winEnd = Date.parse(`${ymd}T${w.end_time}:00+05:30`)
+      // minutes past midnight, so "24:00" (midnight) works too
+      const dayStart = Date.parse(`${ymd}T00:00:00+05:30`)
+      const at = (hhmm: string) => { const [h, m] = hhmm.split(':').map(Number); return dayStart + (h * 60 + m) * 60_000 }
+      const winStart = at(w.start_time)
+      const winEnd = at(w.end_time)
       for (let t = winStart; t + minutes * 60_000 <= winEnd; t += STEP_MIN * 60_000) {
         const end = t + minutes * 60_000
         if (t < from.getTime() || t > to.getTime()) continue

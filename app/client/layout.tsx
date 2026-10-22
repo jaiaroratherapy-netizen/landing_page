@@ -12,5 +12,5 @@ const NAV = [
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const me = await requireRole('client')
-  return <AppShell title="My therapy" who={me.email} nav={NAV}>{children}</AppShell>
+  return <AppShell title="My therapy" user={{ name: me.client.full_name, email: me.email, photo: me.avatar, profileHref: '/client/profile' }} nav={NAV}>{children}</AppShell>
 }

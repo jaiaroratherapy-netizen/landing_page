@@ -1,12 +1,13 @@
-import { CONSENT_ITEMS } from '@/lib/forms'
+import { itemsForAnswers } from '@/lib/forms'
 import { fmtDate, fmtDateTime } from '@/lib/format'
 import type { Consent } from '@/lib/types'
 
 /** Consent read-out: what they said YES to and NO to, side by side. */
 export function ConsentView({ consent }: { consent: Consent | null }) {
   if (!consent) return <p className="empty">No consent form signed yet.</p>
-  const yes = CONSENT_ITEMS.filter((i) => consent.answers[i.key] === true)
-  const no = CONSENT_ITEMS.filter((i) => consent.answers[i.key] !== true)
+  const items = itemsForAnswers(consent.kind, consent.answers)
+  const yes = items.filter((i) => consent.answers[i.key] === true)
+  const no = items.filter((i) => consent.answers[i.key] !== true)
   return (
     <div className="stack">
       <div className="yesno">

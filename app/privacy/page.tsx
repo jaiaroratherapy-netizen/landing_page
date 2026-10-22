@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy Policy" updated="18 October 2026">
+    <LegalPage title="Privacy Policy" updated="22 October 2026">
       <p>Kirana Counselling (“Kirana”, “we”) runs therapist training and an affordable therapy initiative at kiranacounselling.com and its subdomains. This policy explains what personal data we collect, why, and the choices you have. It is written to meet India’s Digital Personal Data Protection Act, 2023.</p>
 
       <h2>Who this covers</h2>
@@ -37,7 +37,7 @@ export default function Privacy() {
         <li>To match clients with trainee therapists, schedule sessions and keep therapy records.</li>
         <li>For clinical supervision and quality, only as you consented to in your consent form.</li>
         <li>To calculate session fees and trainee payouts.</li>
-        <li>To contact you about your sessions by WhatsApp or email.</li>
+        <li>To contact you about your sessions by WhatsApp or email: for example a welcome email, your therapist assignment, consent links and booking confirmations, sent from kirana.counselling@gmail.com.</li>
         <li>To improve our training, using feedback and anonymised statistics.</li>
       </ul>
       <p>Session recordings are used for supervision or for improving Kirana’s aiClients training platform <b>only if</b> you said Yes to those statements in your consent form, and always anonymised with personal information removed.</p>
@@ -47,7 +47,7 @@ export default function Privacy() {
         <li><b>Clients’ data</b> is visible to their assigned trainee therapist and to Kirana instructors.</li>
         <li><b>Client feedback</b> is visible to the therapist and to instructors. <b>Trainee feedback</b> is visible only to instructors.</li>
         <li>We never sell personal data or use it for advertising.</li>
-        <li>Our service providers process data on our behalf: <b>Supabase</b> (database and sign-in), <b>Vercel</b> (hosting) and <b>Google</b> (Sign-In). They may store data outside India under their own security commitments.</li>
+        <li>Our service providers process data on our behalf: <b>Supabase</b> (database and sign-in), <b>Vercel</b> (hosting) and <b>Google</b> (Sign-In, Calendar for trainees who connect it, and Gmail for our emails). They may store data outside India under their own security commitments.</li>
         <li>We may disclose data if the law requires it, or if someone’s life or safety is at serious risk.</li>
       </ul>
 

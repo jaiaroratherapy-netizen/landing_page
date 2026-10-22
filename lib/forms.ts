@@ -1,6 +1,9 @@
 // Wording of every form, kept in one place so the forms and the read-out views always match.
 
-export const CONSENT_ITEMS = [
+export type ConsentItem = { key: string; label: string; required?: boolean; yesOnly?: boolean }
+
+// Signed before October 2026 (both trainees and clients). Kept so old forms still read correctly.
+export const LEGACY_CONSENT_ITEMS: ConsentItem[] = [
   { key: 'age_18', label: 'I confirm that I am 18 or above years in age', required: true },
   { key: 'withdraw', label: 'I understand that I can withdraw consent at any time, for any part of this agreement just by emailing kirana.counselling@gmail.com' },
   { key: 'supervision', label: 'I consent to the contents of the sessions being shared with clinical supervisors and other trainees for supervision purposes, without my name and other identifiers' },
@@ -9,9 +12,47 @@ export const CONSENT_ITEMS = [
   { key: 'fees', label: 'I understand the first three sessions are free, and from Session 4 onward a ₹299 per-session charge applies, paid entirely to the trainee therapist.' },
   { key: 'period', label: 'I understand these services are offered only from September 2026 to November 2026, and Kirana Counselling is not involved in any arrangement beyond this period.' },
   { key: 'read_terms', label: 'I have read and understood all terms of this contract.', required: true },
-] as const
+]
 
-export type ConsentKey = (typeof CONSENT_ITEMS)[number]['key']
+export const CLIENT_CONSENT_ITEMS: ConsentItem[] = [
+  { key: 'age_18', label: 'I confirm that I am 18 or above years in age', required: true },
+  { key: 'withdraw', label: 'I understand that I can withdraw consent at any time, for any part of this agreement just by emailing kirana.counselling@gmail.com' },
+  { key: 'supervision', label: 'I consent to the contents of the sessions being shared with clinical supervisors and other trainees for supervision purposes, without my name and other identifiers' },
+  { key: 'video', label: 'I consent to video recording of my sessions for clinical supervision and to ensure the quality of the service delivered' },
+  { key: 'ai_training', label: "I consent to my (anonymised, personal information removed) session recordings being used to improve Kirana Counselling's aiClients platform, to help train future therapists." },
+  { key: 'fees', label: 'I understand the first three sessions are free, and from Session 4 onward a ₹299 per-session charge applies, paid entirely to the trainee therapist.' },
+  { key: 'period', label: 'I understand these services are time limited, and Kirana Counselling is not involved in any arrangement beyond this period.' },
+  { key: 'read_terms', label: 'I have read and understood all terms of this contract.', required: true, yesOnly: true },
+]
+
+export const TRAINEE_CONSENT_ITEMS: ConsentItem[] = [
+  { key: 'supervision_75', label: 'I agree to attend a minimum of 75% of supervision sessions.' },
+  { key: 'video', label: 'I consent to video recording of my sessions with clients and supervision for clinical supervision purposes.' },
+  { key: 'ai_training', label: "I consent to my (anonymised, personal information removed) session recordings being used to improve Kirana Counselling's aiClients platform, to help train future therapists." },
+  { key: 'dedicated_number', label: 'I will use a dedicated number for all client communication, within the stated availability hours.' },
+  { key: 'fathom', label: "I will record all sessions using Fathom (unless a client declines), and will not delete recordings without Kirana's written consent." },
+  { key: 'legal', label: 'I understand my personal legal obligations under Section 72A of the IT Act and the POCSO Act, as described above.' },
+  { key: 'apa', label: 'I agree to conduct myself in line with the APA Ethical Principles of Psychologists and Code of Conduct.' },
+  { key: 'no_support_after', label: 'I understand that Kirana Counselling will not be responsible for supervision or clinical support after the programme ends. I have to arrange my own supervisor for continued private practice.' },
+  { key: 'personal_therapy', label: 'I agree to seek personal therapy for myself, while being in the program.' },
+  { key: 'non_compliance', label: 'I accept that non-compliance may result in removal from the programme.' },
+  { key: 'read_terms', label: 'I have read and understood all terms of this contract', required: true, yesOnly: true },
+]
+
+export const EMERGENCY_HELP = {
+  trainee: "This is taken so there's someone who can be reached if you are at risk or are a risk to others, including but limited to, your clients. This is not for general matters like missed sessions etc.",
+  client: "This is taken so there's someone who can be reached if you may be at risk or in an emergency and can't reach you directly, or if a session raises a safety concern that needs to be acted on quickly. The details of sessions are kept confidential unless an imminent harm, to you or anyone else, is foreseen.",
+} as const
+
+export function consentItems(kind: 'trainee' | 'client') {
+  return kind === 'trainee' ? TRAINEE_CONSENT_ITEMS : CLIENT_CONSENT_ITEMS
+}
+
+/** The question list a stored form was signed against (older forms used the legacy list). */
+export function itemsForAnswers(kind: 'trainee' | 'client', answers: Record<string, boolean>) {
+  const current = consentItems(kind)
+  return current.every((i) => i.key in answers) ? current : LEGACY_CONSENT_ITEMS
+}
 
 export const TRAINEE_FEEDBACK = [
   { key: 'experience', label: 'How was your experience of taking Pro-bono sessions with Kirana?' },

@@ -68,8 +68,8 @@ create table if not exists clients (
   emergency_contact text,
   trainee_id uuid references trainees on delete set null,
   assigned_at timestamptz,
-  status text not null default 'new'
-    check (status in ('new', 'assigned', 'active', 'paused', 'dropped', 'completed')),
+  status text not null default 'unassigned'
+    check (status in ('unassigned', 'assigned', 'active', 'paused', 'dropped', 'completed')),
   admin_notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

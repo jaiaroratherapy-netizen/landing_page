@@ -51,7 +51,7 @@ export default async function TherapistProfile({ params }: { params: Promise<{ s
             <div className="row sp">
               {mine
                 ? <Link className="btn berry" href={`/book/${t.slug}?type=session`}>Book a session</Link>
-                : (!client?.trainee_id && <Link className="btn berry" href={`/book/${t.slug}?type=intro`}>Book a free intro call</Link>)}
+                : <Link className="btn berry" href={`/book/${t.slug}?type=intro`}>Book a free intro call</Link>}
               {!viewer && <Link className="btn ghost" href="/onboarding">New here? Sign up</Link>}
               {t.linkedin && <a className="btn ghost" href={t.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>}
             </div>
@@ -59,18 +59,18 @@ export default async function TherapistProfile({ params }: { params: Promise<{ s
           </div>
         </section>
 
+      <section className="card sp">
+          <h2>About {first}</h2>
+          {t.bio ? <p style={{ whiteSpace: 'pre-wrap' }}>{t.bio}</p> : <p className="muted">{first} hasn’t written an introduction yet.</p>}
+          {(t.qualifications || t.experience) && (
+            <dl className="kv sp">
+              {t.qualifications && <><dt>Qualifications</dt><dd>{t.qualifications}</dd></>}
+              {t.experience && <><dt>Experience</dt><dd>{t.experience}</dd></>}
+            </dl>
+          )}
+        </section>
+
         <div className="grid g2 sp">
-          <section className="card">
-            <h2>About {first}</h2>
-            {t.bio ? <p style={{ whiteSpace: 'pre-wrap' }}>{t.bio}</p> : <p className="muted">{first} hasn’t written an introduction yet.</p>}
-            {(t.qualifications || t.experience) && (
-              <dl className="kv sp">
-                {t.qualifications && <><dt>Qualifications</dt><dd>{t.qualifications}</dd></>}
-                {t.experience && <><dt>Experience</dt><dd>{t.experience}</dd></>}
-              </dl>
-            )}
-          </section>
-          <div className="stack">
             <section className="card">
               <h2>Usually available</h2>
               {hasAvailability(t.availability) ? (
@@ -91,7 +91,6 @@ export default async function TherapistProfile({ params }: { params: Promise<{ s
               </ul>
               <p className="fine sp">Offered September–November 2026 under clinical supervision.</p>
             </section>
-          </div>
         </div>
         <p className="fine sp">In a crisis, call Tele-MANAS on 14416 (free, 24×7) or 112.</p>
       </main>

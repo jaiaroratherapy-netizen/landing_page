@@ -12,9 +12,10 @@ const NAV = [
   { href: '/admin/sessions', label: 'Sessions', icon: '◷' },
   { href: '/admin/money', label: 'Money', icon: '₹' },
   { href: '/admin/feedback', label: 'Feedback', icon: '✎' },
+  { href: '/admin/messages', label: 'Messages', icon: '✉' },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const viewer = await requireRole('admin')
-  return <AppShell title="Instructor" who={viewer.email} nav={NAV}>{children}</AppShell>
+  return <AppShell title="Instructor" user={{ name: viewer.name ?? viewer.email.split('@')[0], email: viewer.email, photo: viewer.avatar }} nav={NAV}>{children}</AppShell>
 }

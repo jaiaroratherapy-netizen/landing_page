@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { NextResponse, type NextRequest } from 'next/server'
 import { db } from '@/lib/supabase'
+import { emailClientWelcome } from '@/lib/notify'
 import { AadhaarQR } from '@/lib/aadhaar'
 import { logActivity } from '@/lib/auth'
 
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Please enter a valid email.')
   if (!/^[6-9]\d{9}$/.test(whatsapp)) return fail('Please enter a valid 10-digit WhatsApp number.')
   if (!s(body.reason) || !s(body.diagnosis) || !s(body.org)) return fail('Please fill in all required fields.')
-  if (!['Yes', 'No', 'Prefer not to say'].includes(selfHarm)) return fail('Please answer the self-harm question.')
+  if (!['Yes', 'No'].includes(selfHarm)) return fail('Please answer the self-harm question.')
   if (body.agree !== true) return fail('Please accept the agreement.')
 
   let qr
@@ -53,5 +54,6 @@ export async function POST(req: NextRequest) {
     return fail('Something went wrong. Please try again.', 500)
   }
   await logActivity(email, 'signed up as a client', 'client', row.id, `${qr.name}${selfHarm === 'Yes' ? ' · flagged self-harm: Yes' : ''}`)
+  await emailClientWelcome(row.id)
   return NextResponse.json({ ok: true, name: qr.name })
 }

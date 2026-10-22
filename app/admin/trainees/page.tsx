@@ -4,7 +4,7 @@ import { db } from '@/lib/supabase'
 import { ActionForm, Submit } from '@/components/ActionForm'
 import { Pill } from '@/components/Pill'
 import { Avatar } from '@/components/PhotoInput'
-import { inviteTrainee } from '../actions'
+import { emailAllPendingOnboarding, inviteTrainee } from '../actions'
 import { inr, therapyDone } from '@/lib/money'
 
 export default async function Trainees({ searchParams }: { searchParams: Promise<{ cohort?: string }> }) {
@@ -13,6 +13,7 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
   const { data: cal } = await db().from('google_accounts').select('trainee_id, last_error')
   const calendar = new Map((cal ?? []).map((c) => [c.trainee_id, c.last_error]))
   const cohorts = new Map(d.cohorts.map((c) => [c.id, c.name]))
+  const pendingCount = d.trainees.filter((t) => t.status === 'invited').length
   const list = cohort ? d.trainees.filter((t) => t.cohort_id === cohort) : d.trainees
 
   return (
@@ -39,17 +40,22 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
           <label className="field"><span>Cohort</span>
             <select name="cohort_id" defaultValue=""><option value="">No cohort yet</option>{d.cohorts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
           </label>
-          <div className="full"><Submit pendingText="Creating…">Create onboarding link</Submit></div>
+          <div className="full"><Submit pendingText="Creating…">Create onboarding link & email it</Submit></div>
         </ActionForm>
+        {pendingCount > 0 && (
+          <ActionForm action={emailAllPendingOnboarding} className="row sp" confirm={`Email onboarding links to ${pendingCount} trainees who haven’t onboarded yet?`}>
+            <Submit className="btn ghost small" pendingText="Queuing…">Email onboarding links to {pendingCount} trainees who haven’t onboarded</Submit>
+          </ActionForm>
+        )}
       </section>
 
       <section className="card sp">
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Name</th><th>Cohort</th><th>Status</th><th className="num">Clients</th><th className="num">Sessions</th><th>Calendar</th><th className="num">Owed</th></tr></thead>
+            <thead><tr><th>Name</th><th>Cohort</th><th>Status</th><th className="num">Clients</th><th className="num">Sessions</th><th>Calendar</th><th className="num">Earned</th></tr></thead>
             <tbody>
               {list.map((t) => {
-                const m = earningsFor(t.id, d.sessions, d.payouts)
+                const m = earningsFor(t.id, d.sessions)
                 return (
                   <tr key={t.id}>
                     <td>
@@ -63,7 +69,7 @@ export default async function Trainees({ searchParams }: { searchParams: Promise
                     <td className="num">{d.clients.filter((c) => c.trainee_id === t.id).length}</td>
                     <td className="num">{d.sessions.filter((s) => s.trainee_id === t.id && therapyDone(s)).length}</td>
                     <td>{!calendar.has(t.id) ? <span className="muted">—</span> : calendar.get(t.id) ? <span className="pill berry">error</span> : <span className="pill sage">synced</span>}{!t.availability && <div className="fine">no hours set</div>}</td>
-                    <td className="num">{inr(m.due)}</td>
+                    <td className="num">{inr(m.earned)}</td>
                   </tr>
                 )
               })}

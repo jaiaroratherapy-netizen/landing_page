@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getViewer, logActivity } from '@/lib/auth'
 import { db } from '@/lib/supabase'
+import { emailBooking, scheduleAssignmentEmails } from '@/lib/notify'
 import { bookingProblem, isFree, KINDS, type Kind } from '@/lib/booking'
 import { syncSessionEvent } from '@/lib/google'
 import { fmtDateTime } from '@/lib/format'
@@ -43,6 +44,7 @@ export async function bookSlot(_: { error?: string } | null, fd: FormData): Prom
       // booking an intro call is how an unmatched client chooses a therapist; the admin can still reassign
       await db().from('clients').update({ trainee_id: t.id, assigned_at: new Date().toISOString(), status: 'assigned' }).eq('id', client.id)
       await logActivity(viewer.email, 'chose a therapist by booking an intro call', 'client', client.id, `${client.full_name} → ${t.full_name}`)
+      await scheduleAssignmentEmails(client.id, { clientChose: true })
     }
     const { data, error } = await db().from('sessions').insert({
       client_id: client.id, trainee_id: t.id, scheduled_at: start, duration_min: KINDS[kind].minutes, kind, created_by: 'client',
@@ -52,6 +54,7 @@ export async function bookSlot(_: { error?: string } | null, fd: FormData): Prom
     await logActivity(viewer.email, `booked a ${KINDS[kind].label.toLowerCase()}`, 'session', data.id, `${client.full_name} with ${t.full_name} on ${fmtDateTime(start)}`)
   }
   await syncSessionEvent(sessionId!)
+  await emailBooking(sessionId!, existing ? 'rescheduled' : 'booked')
   revalidatePath('/client', 'layout')
   revalidatePath('/trainee', 'layout')
   revalidatePath('/admin', 'layout')

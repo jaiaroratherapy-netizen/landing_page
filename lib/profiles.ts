@@ -19,6 +19,7 @@ export function slugify(name: string) {
 /** "19:00" → "7 pm", "12:30" → "12:30 pm" */
 export function time12(t: string) {
   const [h, m] = t.split(':').map(Number)
+  if (h === 24) return '12 am'
   const suffix = h >= 12 ? 'pm' : 'am'
   const hh = h % 12 || 12
   return m ? `${hh}:${String(m).padStart(2, '0')} ${suffix}` : `${hh} ${suffix}`

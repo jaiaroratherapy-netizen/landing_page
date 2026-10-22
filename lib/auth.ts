@@ -10,6 +10,7 @@ export type Viewer = {
   userId: string
   email: string
   name: string | null
+  avatar: string | null
   role: Role | null
   trainee: Trainee | null
   client: Client | null
@@ -30,9 +31,10 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const user = { id: claims.sub, email: claims.email, user_metadata: (claims.user_metadata ?? {}) as Record<string, unknown> }
   const email = user.email.toLowerCase()
   const name = (user.user_metadata.full_name as string) || null
+  const avatar = (user.user_metadata.avatar_url as string) || (user.user_metadata.picture as string) || null
 
   if (adminEmails().includes(email)) {
-    return { userId: user.id, email, name, role: 'admin', trainee: null, client: null }
+    return { userId: user.id, email, name, avatar, role: 'admin', trainee: null, client: null }
   }
 
   const [{ data: trainee }, { data: client }] = await Promise.all([
@@ -42,13 +44,13 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
 
   if (trainee) {
     if (!trainee.user_id) await db().from('trainees').update({ user_id: user.id }).eq('id', trainee.id)
-    return { userId: user.id, email, name, role: 'trainee', trainee, client: null }
+    return { userId: user.id, email, name, avatar, role: 'trainee', trainee, client: null }
   }
   if (client) {
     if (!client.user_id) await db().from('clients').update({ user_id: user.id }).eq('id', client.id)
-    return { userId: user.id, email, name, role: 'client', trainee: null, client }
+    return { userId: user.id, email, name, avatar, role: 'client', trainee: null, client }
   }
-  return { userId: user.id, email, name, role: null, trainee: null, client: null }
+  return { userId: user.id, email, name, avatar, role: null, trainee: null, client: null }
 })
 
 export async function requireRole(role: 'admin'): Promise<Viewer>
