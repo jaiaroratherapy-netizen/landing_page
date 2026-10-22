@@ -35,6 +35,9 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
   const fromClients = d.clientFeedback.filter((f) => f.trainee_id === t.id)
   const base = await origin()
   const { data: cal } = await db().from('google_accounts').select('google_email, last_error').eq('trainee_id', t.id).maybeSingle()
+  const cohortName = d.cohorts.find((c) => c.id === t.cohort_id)?.name
+  const hasHours = Object.values(t.availability ?? {}).some((r) => r?.length)
+  const missing = [!t.photo_url && 'photo', !t.bio && 'about', !hasHours && 'hours'].filter(Boolean) as string[]
 
   return (
     <>
@@ -73,9 +76,12 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
         <Stat n={inr(m.earned)} label="Earned" sub={`${inr(m.collected)} marked paid by clients`} berry />
       </div>
 
-      <div className="grid g2 sp">
-        <section className="card">
-          <h2>Profile</h2>
+      <div className="stack sp">
+        <details className="card fold">
+          <summary>
+            <h2>Details &amp; notes</h2>
+            <span className="fine">{[cohortName, t.phone, t.upi_id ? 'UPI added' : 'no UPI'].filter(Boolean).join(' · ')}</span>
+          </summary>
           <ActionForm action={updateTrainee} className="form-grid">
             <input type="hidden" name="id" value={t.id} />
             <label className="field"><span>Full name</span><input name="full_name" defaultValue={t.full_name} required /></label>
@@ -89,43 +95,54 @@ export default async function TraineeDetail({ params, searchParams }: { params: 
             </label>
             <label className="field"><span>UPI ID</span><input name="upi_id" defaultValue={t.upi_id ?? ''} /></label>
             <label className="field full"><span>Instructor notes <small>(only you see these)</small></span><textarea name="admin_notes" defaultValue={t.admin_notes ?? ''} /></label>
-            <div className="full row"><Submit>Save profile</Submit></div>
+            <div className="full row"><Submit>Save details</Submit></div>
           </ActionForm>
           <ActionForm action={deleteTrainee} className="sp" confirm={`Remove ${t.full_name}? Their clients become unassigned.`}>
             <input type="hidden" name="id" value={t.id} />
             <Submit className="link" pendingText="Removing…">Remove trainee</Submit>
           </ActionForm>
-        </section>
+        </details>
 
-        <div className="stack">
-          <section className="card">
+        <details className="card fold">
+          <summary>
             <h2>Onboarding consent</h2>
-            <ConsentView consent={consent} />
-          </section>
-          <section className="card">
-            <h2>Assigned clients</h2>
-            {clients.length ? (
-              <ul className="feed">
-                {clients.map((c) => <li key={c.id}><span><Link href={`/admin/clients/${c.id}`}>{c.full_name}</Link> · <Pill status={c.status} /></span></li>)}
-              </ul>
-            ) : <p className="empty">No clients assigned. <Link href="/admin/clients?filter=unassigned">Assign one</Link></p>}
-          </section>
-        </div>
+            {consent ? <span className="pill sage">signed {fmtDate(consent.signed_at)}</span> : <span className="pill invited">not signed yet</span>}
+          </summary>
+          <ConsentView consent={consent} />
+        </details>
 
-        <section className="card span2">
-          <div className="card-head">
+        <details className="card fold">
+          <summary>
             <h2>Public profile</h2>
+            <span className="fold-pills">
+              <span className={`pill ${t.is_public ? 'sage' : ''}`}>{t.is_public ? 'visible' : 'hidden'}</span>
+              {missing.length ? <span className="pill invited">missing: {missing.join(', ')}</span> : <span className="pill sage">complete</span>}
+              <span className={`pill ${cal && !cal.last_error ? 'sage' : 'invited'}`}>{cal ? (cal.last_error ? 'calendar error' : 'calendar connected') : 'no calendar'}</span>
+            </span>
+          </summary>
+          <div className="card-head" style={{ marginBottom: 8 }}>
+            <p className="fine">
+              Google Calendar: {cal ? (cal.last_error ? <b style={{ color: 'var(--berry)' }}>{cal.last_error}</b> : <>connected ({cal.google_email})</>) : 'not connected (the trainee connects it from their Profile page)'}
+            </p>
             {t.slug && <Link className="btn small ghost" href={`/therapists/${t.slug}`} target="_blank">View public page ↗</Link>}
           </div>
-          <p className="fine" style={{ marginBottom: 12 }}>
-            Google Calendar: {cal ? (cal.last_error ? <b style={{ color: 'var(--berry)' }}>{cal.last_error}</b> : <>connected ({cal.google_email})</>) : 'not connected (the trainee connects it from their Profile page)'}
-          </p>
           <PhotoInput action={uploadTraineePhoto} current={t.photo_url} name={t.full_name} hidden={{ trainee_id: t.id }} />
           <ActionForm action={updateTraineePublic} className="stack sp">
             <input type="hidden" name="id" value={t.id} />
             <ProfileFields t={t} admin />
             <div><Submit>Save public profile</Submit></div>
           </ActionForm>
+        </details>
+      </div>
+
+      <div className="grid g2 sp">
+        <section className="card span2">
+          <h2>Assigned clients <span className="fine">({clients.length})</span></h2>
+          {clients.length ? (
+            <ul className="feed">
+              {clients.map((c) => <li key={c.id}><span><Link href={`/admin/clients/${c.id}`}>{c.full_name}</Link> · <Pill status={c.status} /></span></li>)}
+            </ul>
+          ) : <p className="empty">No clients assigned. <Link href="/admin/clients?filter=unassigned">Assign one</Link></p>}
         </section>
 
         <section className="card span2">

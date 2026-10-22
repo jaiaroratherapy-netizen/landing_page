@@ -353,3 +353,30 @@ a.me:hover { background: rgba(255, 255, 255, .07); }
   .recipients { position: static; flex-direction: row; overflow-x: auto; max-height: none; }
   .recipients a { flex: none; }
 }
+
+/* assign-therapist dialog */
+.assign { display: grid; gap: 4px; justify-items: start; }
+.assign > .fine { max-width: 260px; }
+.modal { width: min(560px, calc(100vw - 32px)); max-height: min(640px, calc(100vh - 48px)); padding: 20px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); color: var(--plum); box-shadow: var(--shadow); }
+.modal[open] { display: flex; flex-direction: column; gap: 12px; }
+.modal::backdrop { background: rgba(74, 30, 72, .35); }
+.modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.modal-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.pick-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 120px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.pick-list li + li { border-top: 1px solid var(--line); }
+.pick-list button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; background: none; border: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.pick-list button > span:first-child { display: grid; min-width: 0; }
+.pick-list button .fine { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pick-list button:hover:not(:disabled), .pick-list button:focus-visible { background: rgba(74, 30, 72, .06); outline: none; }
+.pick-list button:disabled { cursor: default; opacity: .8; }
+.pick-meta { display: flex; align-items: center; gap: 8px; flex: none; }
+
+/* collapsible card: the summary is the card header */
+details.fold > summary { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; cursor: pointer; list-style: none; margin: -20px; padding: 20px; padding-right: 48px; position: relative; border-radius: var(--r); }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::after { content: ''; position: absolute; right: 22px; top: 50%; width: 9px; height: 9px; border: solid var(--muted); border-width: 0 2px 2px 0; transform: translateY(-70%) rotate(45deg); transition: transform .15s; }
+details.fold[open] > summary::after { transform: translateY(-30%) rotate(-135deg); }
+details.fold > summary:hover { background: rgba(74, 30, 72, .03); }
+details.fold > summary:focus-visible { outline: 2px solid var(--plum-2); outline-offset: 2px; }
+details.fold[open] > summary { border-bottom: 1px solid var(--line); border-radius: var(--r) var(--r) 0 0; margin-bottom: 18px; }
+.fold-pills { display: flex; gap: 6px; flex-wrap: wrap; }

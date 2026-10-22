@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { loadEverything } from '@/lib/data'
+import { assignOptions, loadEverything } from '@/lib/data'
 import { ActionForm, Submit } from '@/components/ActionForm'
 import { AssignForm } from '@/components/AssignForm'
 import { ConsentView } from '@/components/ConsentView'
@@ -20,8 +20,6 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const d = await loadEverything()
   const c = d.clients.find((x) => x.id === id)
   if (!c) notFound()
-  const load = new Map<string, number>()
-  d.clients.forEach((x) => x.trainee_id && load.set(x.trainee_id, (load.get(x.trainee_id) ?? 0) + 1))
   const trainee = d.trainees.find((t) => t.id === c.trainee_id)
   const consent = d.consents.find((x) => x.kind === 'client' && x.client_id === c.id) ?? null
   const sessions = d.sessions.filter((s) => s.client_id === c.id).reverse()
@@ -39,7 +37,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
         </div>
         <div className="stack" style={{ gap: 6 }}>
           <span className="fine">Therapist {trainee && <>· <Link href={`/admin/trainees/${trainee.id}`}>{trainee.full_name}</Link></>}</span>
-          <AssignForm clientId={c.id} current={c.trainee_id} trainees={d.trainees} load={load} />
+          <AssignForm clientId={c.id} clientName={c.full_name} current={c.trainee_id} trainees={assignOptions(d)} />
         </div>
       </div>
 

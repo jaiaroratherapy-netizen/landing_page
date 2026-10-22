@@ -95,3 +95,13 @@ export function earningsFor(traineeId: string, sessions: BilledSession[]): Earni
   const collected = billable.filter((s) => s.client_paid).reduce((a, s) => a + s.fee, 0)
   return { billable: billable.length, earned, collected, free: done.length - billable.length }
 }
+
+/** Trainees who can take clients, with their cohort and current client count, for the assign dialog. */
+export function assignOptions(d: { trainees: Trainee[]; clients: Client[]; cohorts: Cohort[] }) {
+  const load = new Map<string, number>()
+  d.clients.forEach((c) => c.trainee_id && load.set(c.trainee_id, (load.get(c.trainee_id) ?? 0) + 1))
+  const cohort = new Map(d.cohorts.map((c) => [c.id, c.name]))
+  return d.trainees.filter((t) => t.status !== 'completed').map((t) => ({
+    id: t.id, name: t.full_name, email: t.email, cohort: t.cohort_id ? cohort.get(t.cohort_id) ?? null : null, load: load.get(t.id) ?? 0, invited: t.status === 'invited',
+  }))
+}

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { loadEverything } from '@/lib/data'
+import { assignOptions, loadEverything } from '@/lib/data'
 import { AssignForm } from '@/components/AssignForm'
 import { Pill } from '@/components/Pill'
 import { fmtDate } from '@/lib/format'
@@ -10,8 +10,7 @@ const FILTERS = { all: 'All', unassigned: 'Unassigned', active: 'In therapy', fl
 export default async function Clients({ searchParams }: { searchParams: Promise<{ filter?: keyof typeof FILTERS; q?: string }> }) {
   const { filter = 'all', q = '' } = await searchParams
   const d = await loadEverything()
-  const load = new Map<string, number>()
-  d.clients.forEach((c) => c.trainee_id && load.set(c.trainee_id, (load.get(c.trainee_id) ?? 0) + 1))
+  const options = assignOptions(d)
   const consented = new Set(d.consents.filter((c) => c.kind === 'client').map((c) => c.client_id))
   const done = new Map<string, number>()
   d.sessions.forEach((s) => therapyDone(s) && done.set(s.client_id, (done.get(s.client_id) ?? 0) + 1))
@@ -52,7 +51,7 @@ export default async function Clients({ searchParams }: { searchParams: Promise<
                   <td><Pill status={c.status} /></td>
                   <td>{consented.has(c.id) ? <span className="pill sage">signed</span> : <span className="pill">pending</span>}</td>
                   <td className="num">{done.get(c.id) ?? 0}</td>
-                  <td><AssignForm clientId={c.id} current={c.trainee_id} trainees={d.trainees} load={load} /></td>
+                  <td><AssignForm clientId={c.id} clientName={c.full_name} current={c.trainee_id} trainees={options} /></td>
                 </tr>
               ))}
             </tbody>
